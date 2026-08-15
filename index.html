@@ -407,6 +407,22 @@
   }
   .rev-card:hover{border-color:var(--line-red); transform:translateY(-5px);}
   .rev-stars{color:var(--gold); font-size:14px; letter-spacing:2px;}
+  .rev-msg-label{
+    display:flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:-4px;
+  }
+  .rev-msg-label svg{width:12px; height:12px; color:var(--muted);}
+  .rev-bubble{
+    position:relative; background:rgba(255,255,255,0.04); border:1px solid var(--line);
+    border-radius:14px; border-top-left-radius:4px; padding:12px 14px;
+    font-size:14.5px; line-height:1.55; color:var(--ink);
+  }
+  .rev-outcome{
+    display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--muted);
+    line-height:1.55; padding-top:14px; border-top:1px dashed var(--line); flex-grow:1;
+  }
+  .rev-outcome svg{width:15px; height:15px; color:var(--gold); flex-shrink:0; margin-top:1px;}
+  .rev-outcome b{color:var(--ink); font-weight:700;}
   .rev-text{font-size:14.5px; line-height:1.6; color:var(--ink); flex-grow:1;}
   .rev-foot{display:flex; align-items:center; gap:10px; padding-top:12px; border-top:1px solid var(--line);}
   .rev-avatar{
@@ -882,32 +898,44 @@
     <div class="rev-grid">
       <div class="rev-card reveal">
         <div class="rev-stars">★★★★★</div>
-        <div class="rev-text">«Нарешті продав свого красеня! Дуже дякую за вашу роботу і за те, що не обманули.»</div>
+        <div class="rev-msg-label"><svg class="icon"><use href="#i-chat"/></svg> Повідомлення клієнта</div>
+        <div class="rev-bubble">«Нарешті продав свого красеня! Дуже дякую за вашу роботу і за те, що не обманули.»</div>
+        <div class="rev-outcome"><svg><use href="#i-check"/></svg><span><b>Результат:</b> оголошення закрито, авто продано.</span></div>
         <div class="rev-foot"><div class="rev-avatar">В</div><div><div class="rev-name">Віктор</div><div class="rev-car">Продав Jeep Cherokee</div></div></div>
       </div>
       <div class="rev-card reveal">
         <div class="rev-stars">★★★★★</div>
-        <div class="rev-text">«Добрий вечір, авто продано? — Продано!» Покупця знайшли буквально за кілька днів після публікації.</div>
+        <div class="rev-msg-label"><svg class="icon"><use href="#i-chat"/></svg> Переписка з клієнтом</div>
+        <div class="rev-bubble">«Добрий вечір, авто продано?» — «Продано!»</div>
+        <div class="rev-outcome"><svg><use href="#i-check"/></svg><span><b>Результат:</b> покупця знайшли буквально за кілька днів після публікації.</span></div>
         <div class="rev-foot"><div class="rev-avatar">Д</div><div><div class="rev-name">Дмитро</div><div class="rev-car">Продав Toyota Land Cruiser</div></div></div>
       </div>
       <div class="rev-card reveal">
         <div class="rev-stars">★★★★★</div>
-        <div class="rev-text">«Так все добре, дякую. Чекатиму нових клієнтів» — а вже за тиждень оголошення закрили як продане.</div>
+        <div class="rev-msg-label"><svg class="icon"><use href="#i-chat"/></svg> Повідомлення клієнта</div>
+        <div class="rev-bubble">«Так все добре, дякую. Чекатиму нових клієнтів»</div>
+        <div class="rev-outcome"><svg><use href="#i-check"/></svg><span><b>Результат:</b> уже за тиждень оголошення закрили як продане.</span></div>
         <div class="rev-foot"><div class="rev-avatar">К</div><div><div class="rev-name">Клієнт</div><div class="rev-car">Продав Volkswagen Caddy</div></div></div>
       </div>
       <div class="rev-card reveal">
         <div class="rev-stars">★★★★★</div>
-        <div class="rev-text">«Дякую за вашу роботу, я мото вже продав» — швидкий результат навіть для нестандартного транспорту.</div>
+        <div class="rev-msg-label"><svg class="icon"><use href="#i-chat"/></svg> Повідомлення клієнта</div>
+        <div class="rev-bubble">«Дякую за вашу роботу, я мото вже продав»</div>
+        <div class="rev-outcome"><svg><use href="#i-check"/></svg><span><b>Результат:</b> швидкий продаж навіть для нестандартного транспорту.</span></div>
         <div class="rev-foot"><div class="rev-avatar">К</div><div><div class="rev-name">Кирило</div><div class="rev-car">Продав мотоцикл</div></div></div>
       </div>
       <div class="rev-card reveal">
         <div class="rev-stars">★★★★★</div>
-        <div class="rev-text">«Доброго дня! Дане авто продане. Можете видаляти. Дякую» — оголошення закрито того ж дня, як надійшов дзвінок.</div>
+        <div class="rev-msg-label"><svg class="icon"><use href="#i-chat"/></svg> Повідомлення клієнта</div>
+        <div class="rev-bubble">«Доброго дня! Дане авто продане. Можете видаляти. Дякую»</div>
+        <div class="rev-outcome"><svg><use href="#i-check"/></svg><span><b>Результат:</b> оголошення закрито того ж дня, як надійшов дзвінок.</span></div>
         <div class="rev-foot"><div class="rev-avatar">Ю</div><div><div class="rev-name">Юрій</div><div class="rev-car">Продав Ford Mondeo</div></div></div>
       </div>
       <div class="rev-card reveal">
         <div class="rev-stars">★★★★★</div>
-        <div class="rev-text">«Спасибі, продано. Гарного дня!» — угода на $14 000 закрилась без жодного зайвого дзвінка не по темі.</div>
+        <div class="rev-msg-label"><svg class="icon"><use href="#i-chat"/></svg> Повідомлення клієнта</div>
+        <div class="rev-bubble">«Спасибі, продано. Гарного дня!»</div>
+        <div class="rev-outcome"><svg><use href="#i-check"/></svg><span><b>Результат:</b> угода на $14 000 закрилась без жодного зайвого дзвінка не по темі.</span></div>
         <div class="rev-foot"><div class="rev-avatar">О</div><div><div class="rev-name">Олег</div><div class="rev-car">Продав авто за $14 000</div></div></div>
       </div>
     </div>
