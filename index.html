@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CARFORSALE.UA — Онлайн площадка автомобілів України</title>
-<meta name="description" content="Продайте авто швидше й вигідніше: розміщуємо оголошення в Instagram, Telegram, TikTok, Facebook та групах партнерів. Реклама до продажу авто, оплата після публікації.">
+<meta name="description" content="Допомога у швидкому продажу авто через соцмережі, сайт та мобільний додаток. 800 000+ підписників, охоплення до 9 млн. Оплата після публікації.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://carforsaleua.github.io/">
+<meta property="og:site_name" content="CARFORSALE.UA">
 <meta property="og:title" content="CARFORSALE.UA — продайте авто швидше й вигідніше">
 <meta property="og:description" content="800 000+ підписників, охоплення до 9 млн. Реклама до продажу авто.">
 <meta property="og:image" content="https://carforsaleua.github.io/assets/logo.png">
@@ -13,6 +16,28 @@
 <link rel="icon" href="assets/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,700;0,800;1,800;1,900&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AutomotiveBusiness",
+  "name": "CARFORSALE.UA",
+  "image": "https://carforsaleua.github.io/assets/logo.png",
+  "@id": "https://carforsaleua.github.io/",
+  "url": "https://carforsaleua.github.io/",
+  "telephone": "+380731063852",
+  "email": "carforsaleua@gmail.com",
+  "priceRange": "350₴ - 800₴",
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "UA"
+  },
+  "sameAs": [
+    "https://www.instagram.com/carforsale.ua_online/",
+    "https://www.facebook.com/people/Carforsaleua/61557268495368/",
+    "https://www.tiktok.com/@car.forsale"
+  ]
+}
+</script>
 <style>
 :root{--bg:#070707;--p:#111;--ln:rgba(255,255,255,.09);--red:#e11d2a;--r2:#ff3b47;--mut:#a6a6a6;--r:14px}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
@@ -56,7 +81,6 @@ html:not(.js) .rg2 .p{stroke-dashoffset:0}html:not(.js) .ln::after{transform:non
 .rail{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 22px 18px;scrollbar-width:none}.rail::-webkit-scrollbar{display:none}
 .car{flex:0 0 min(80vw,330px);scroll-snap-align:start;border:1px solid var(--ln);border-radius:var(--r);overflow:hidden;background:var(--p);cursor:pointer;padding:0;transition:.2s}
 .car:hover{border-color:var(--red);transform:translateY(-4px)}.car img{width:100%;aspect-ratio:4/3;object-fit:cover}
-@media(min-width:1000px){.rail{padding-left:max(22px,calc((100vw - 1200px)/2 + 22px))}}
 dialog{background:#0b0b0b;color:#fff;border:1px solid var(--red);border-radius:var(--r);padding:14px;width:min(94vw,900px);max-height:94vh}dialog::backdrop{background:rgba(0,0,0,.88)}
 dialog img{width:100%;border-radius:10px}.lb{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
 .lb small{color:var(--mut);display:block}.x{position:absolute;top:8px;right:12px;background:rgba(0,0,0,.6);border:0;color:#fff;width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer}
@@ -111,31 +135,25 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
  section{padding:44px 0}.w{padding:0 16px}.burger{display:block}.nav-t{display:none}nav{gap:12px}.brand img{height:38px}header .btn{width:auto}
  header .links{display:none}header .links.o{display:flex;flex-direction:column;position:fixed;inset:64px 0 auto;background:#070707;padding:20px;gap:16px;font-size:17px;border-bottom:1px solid var(--ln)}
  .btn{padding:11px 18px;font-size:13px}h2{font-size:clamp(22px,6.4vw,32px)}.eb{font-size:11.5px}
- /* hero: та сама композиція, що на ПК: текст ліворуч, авто праворуч */
  .hero{min-height:560px;padding:84px 0 34px;align-items:flex-start}
  .hero .im{right:-30%;bottom:0;width:118%}
  .hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(7,7,7,.94) 0%,rgba(7,7,7,.65) 48%,transparent 78%)}
  .hero .tx{max-width:66%}.hero h1{font-size:clamp(24px,7.4vw,40px)}
  .pill{font-size:10.5px;padding:5px 11px;margin-bottom:14px}.hero p{font-size:12.5px;margin:12px 0 18px;max-width:100%}
  .hero .cta{gap:8px}.hero .btn{padding:10px 14px;font-size:12px}
- /* стрічка цифр: 4 в ряд */
  .kp{grid-template-columns:repeat(4,1fr)}.kp .it{flex-direction:column;gap:6px;padding:14px 3px;text-align:center;justify-content:flex-start;border:0}
  .ic{width:42px;height:42px}.kp .gl{width:20px;height:20px}.kp b{font-size:13.5px}.kp p span{font-size:9.5px;line-height:1.2;display:block}
  .head{margin-bottom:16px}.car{flex-basis:78vw}
- /* 3 кроки: 3 в ряд */
  .hw{grid-template-columns:1fr;gap:22px}.how .bg{width:100%;opacity:.3}
  .sts{gap:6px}.nd{width:36px;height:36px;margin-bottom:12px}.nd b{font-size:13px}.sts .c svg{width:26px;height:26px;margin-bottom:6px}.sts h3{font-size:11.5px}.sts p{font-size:10px;margin-top:4px}
  .ln.h{top:17px;left:calc(16.666% + 16px);width:calc(33.333% - 34px)}.ln.h.l2{left:calc(50% + 18px)}
- /* тарифи й відгуки: свайп */
  .tg,.rg{grid-template-columns:1fr;gap:18px}
  .cards,.rv{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 -16px;padding:14px 16px 6px;scrollbar-width:none}
  .cards::-webkit-scrollbar,.rv::-webkit-scrollbar{display:none}.cards .card{flex:0 0 72%;scroll-snap-align:center}.rv .card{flex:0 0 78%;scroll-snap-align:center}
  .sg{grid-template-columns:1fr}.nums b{font-size:22px}
- /* додаток: телефон і чекліст поруч */
  .ag{grid-template-columns:1fr 1fr;gap:18px}.ag>div:first-child{grid-column:1/-1}.logo-t{font-size:24px}
  .ph{width:100%;max-width:150px;border-width:6px;border-radius:26px}
  .ck li{font-size:12.5px;padding-left:38px;min-height:44px;line-height:24px}.ck .nd{width:24px;height:24px}.ck .ln.v{left:11px;top:34px;height:calc(100% - 24px)}
- /* про нас: текст і фото поруч */
  .ab{grid-template-columns:1.5fr 1fr;gap:16px}.ab img{order:0;width:100%}blockquote{font-size:15px}.ab p{font-size:12.5px}
  .ct{padding:36px 16px}.ft{justify-content:center;text-align:center}.ft .links{flex-wrap:wrap;justify-content:center;gap:12px}.fb{justify-content:center;text-align:center}
 }
@@ -215,7 +233,7 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
 </div></section>
 
 <section id="reviews" style="border-top:1px solid var(--ln)"><div class="w rg">
- <div><div class="eb">Відгуки наших клієнтів</div><h2>Думка тих,<br>хто вже продав</h2><p class="gr"><span class="stars">★★★★★</span> <span data-k="reviews.summary">5,0 на Google · 5 відгуків</span></p><a class="btn b2 sm" target="_blank" rel="noopener" href="https://share.google/oxJLhAqPVR7rzHKvR" data-href="link.reviews">Переглянути всі відгуки →</a></div>
+ <div><div class="eb">Відгуки наших клієнтів</div><h2>Думка тих,<br>хто вже продав</h2><p class="gr"><span class="stars">★★★★★</span> <span data-k="reviews.summary">5,0 на Google · 5 відгуків</span></p><a class="btn b2 sm" target="_blank" rel="noopener" href="https://maps.google.com/?q=CARFORSALE.UA" data-href="link.reviews">Переглянути всі відгуки →</a></div>
  <div class="rv">
   <div class="card"><div class="who"><i>Ю</i>Юлька Андрушко</div><span class="stars">★★★★★</span><p>«Зробили чудовий рекламний банер і дуже швидко розмістили моє авто. Спочатку опублікували оголошення, і лише після перевірки я здійснила оплату.»</p></div>
   <div class="card"><div class="who"><i>О</i>Олег Будзан</div><span class="stars">★★★★★</span><p>«Авто продали швидко, а на кожному етапі надавали всю необхідну інформацію. Однозначно рекомендую!»</p></div>
@@ -228,6 +246,28 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
   <p>CARFORSALE.UA — український стартап в онлайн-автобазарах. Команда незалежних ентузіастів робить акцент на зручному мобільному застосунку й чесному безкоштовному розміщенні.</p>
   <a class="btn b2 sm" target="_blank" rel="noopener" href="https://t.me/MrKapard" data-href="link.founder">Написати засновнику</a></div>
  <img src="assets/founder.webp" alt="Роман Драпак, засновник CARFORSALE.UA" loading="lazy"></div></section>
+
+<!-- SEO-ОПТИМІЗОВАНИЙ БЛОК -->
+<section id="seo-text" style="border-top:1px solid var(--ln); padding: 60px 0; background: radial-gradient(ellipse 60% 70% at 50% 50%, rgba(225,29,42,0.08), transparent 70%);">
+ <div class="w" style="max-width: 860px;">
+  <h2 style="font-size: clamp(22px, 3vw, 32px); margin-bottom: 20px; text-align: center;">Як вигідно продати авто в Україні: сучасний підхід до автобазарів</h2>
+  <p style="color: var(--mut); margin-bottom: 16px; font-size: 15px; line-height: 1.6;">
+   Шукаєте ефективний спосіб <b>швидко продати авто</b>, уникнувши довгих поїздок на авторинки чи ризикованих перекупників? Платформа <b>CARFORSALE.UA</b> пропонує принципово новий формат реалізації транспортних засобів. Ми об'єднали можливості соціальних мереж та сучасних технологій, щоб ваш автомобіль знайшов нового власника у найкоротші терміни.
+  </p>
+  <p style="color: var(--mut); margin-bottom: 16px; font-size: 15px; line-height: 1.6;">
+   Наш сервіс забезпечує професійний <b>продаж авто в соцмережах</b> (Instagram, Facebook, TikTok) та поширення оголошень у 18 тематичних партнерських Telegram-групах. Сукупна аудиторія наших ресурсів перевищує 800 000 активних підписників, що гарантує потужне охоплення та понад 7–9 млн переглядів щомісяця. Незалежно від того, чи продаєте ви легкові машини, кросовери чи преміум-сегмент, реклама працює ефективно та триває до реального продажу.
+  </p>
+  <h3 style="font-size: 18px; margin: 24px 0 12px; color: #fff;">Чому автовласники обирають CARFORSALE.UA:</h3>
+  <ul style="color: var(--mut); margin: 0 0 16px 20px; padding: 0; font-size: 15px; line-height: 1.6;">
+   <li><b>Безпека та чесність:</b> ніяких прихованих комісій чи переплат. Ви платите мінімальну вартість (від 350 грн) лише після того, як оголошення опубліковано і ви отримали посилання.</li>
+   <li><b>Прямий зв'язок з покупцями:</b> ніяких посередників — потенційні покупці телефонують напряму власнику.</li>
+   <li><b>Мобільний додаток:</b> зручна подача оголошень, швидкий перегляд та керування продажем прямо зі смартфона в кілька кліків.</li>
+  </ul>
+  <p style="color: var(--mut); margin: 0; font-size: 15px; line-height: 1.6;">
+   Обирайте перевірений автобазар нового покоління, замовляйте пакет розміщення (Стандарт, PRO або VIP) та переконайтеся, що <b>продати автомобіль в Україні</b> можна швидко, вигідно та без зайвого клопоту!
+  </p>
+ </div>
+</section>
 
 <section id="faq" style="border-top:1px solid var(--ln)"><div class="w" style="max-width:820px"><h2 style="margin-bottom:20px">Питання</h2>
  <details><summary>Коли потрібно платити?</summary><p>Після того, як ми опублікували оголошення й надіслали вам посилання. Ви перевіряєте, і лише тоді оплачуєте.</p></details>
