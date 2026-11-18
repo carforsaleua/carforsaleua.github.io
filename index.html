@@ -59,7 +59,7 @@ nav{display:flex;align-items:center;gap:22px}.brand img{height:46px;width:auto}.
 .links{display:flex;gap:26px;font-size:13px;font-weight:600}.links a:hover{color:var(--r2)}
 .burger{display:none;background:none;border:0;color:#fff;font-size:28px;cursor:pointer}
 .hero{position:relative;min-height:640px;padding:120px 0 50px;overflow:hidden;display:flex;align-items:center}
-.hero .im{position:absolute;right:-2%;bottom:0;width:min(66%,860px);-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%);mask-image:linear-gradient(90deg,transparent,#000 22%)}
+.hero .im{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:80% 50%}.hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(7,7,7,.82) 0%,rgba(7,7,7,.4) 40%,transparent 68%),linear-gradient(0deg,#070707 0%,transparent 24%)}
 #smoke{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .hero .w{position:relative;z-index:2;width:100%}.hero .tx{max-width:700px}.hero h1 .l1{white-space:nowrap}
 .pill{display:inline-flex;gap:8px;border:1px solid rgba(225,29,42,.7);color:var(--r2);padding:7px 16px;border-radius:99px;font-size:13px;font-weight:600;margin-bottom:22px;background:rgba(10,10,10,.5)}
@@ -109,7 +109,7 @@ html:not(.js) .step .c{transform:none}
 .sg{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
 .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.nums b{display:block;font:800 28px Montserrat}.nums span{font-size:12px;color:var(--mut);line-height:1.3;display:block}
 .cap{color:var(--mut);font-size:13px;margin-top:14px}
-.app{border-top:1px solid var(--ln);overflow:hidden}.ag{display:grid;grid-template-columns:1.1fr .8fr 1fr;gap:30px;align-items:center}
+.app{border-top:1px solid var(--ln);overflow:hidden}.ag{display:grid;grid-template-columns:.9fr 1.5fr .9fr;gap:30px;align-items:center}
 .logo-t{font:900 30px Montserrat;font-style:italic}.ag p{color:#ddd;margin:10px 0 18px}
 .ph{width:min(100%,230px);margin:auto;border:9px solid #1b1b1b;border-radius:36px;overflow:hidden;box-shadow:0 24px 70px rgba(225,29,42,.3)}
 .ck{list-style:none;padding:0;margin:0}.ck li{position:relative;min-height:48px;padding:10px 0 10px 46px;font-weight:600;line-height:28px;color:#6f6f6f;transition:color .5s}.ck li.on{color:#fff}
@@ -117,7 +117,7 @@ html:not(.js) .step .c{transform:none}
 .ck .ln.v{left:13px;top:38px;width:2px;height:calc(100% - 28px)}
 html:not(.js) .ck li{color:#fff}html:not(.js) .ck .nd b{opacity:1}
 .rg{display:grid;grid-template-columns:.8fr 2.2fr;gap:30px;align-items:center}.rg .gr{margin:10px 0 20px;color:#ddd;font-weight:600}
-.rv{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.rv .card{font-size:13.5px}
+.rv{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth;padding:4px 0}.rv::-webkit-scrollbar{display:none}.rv .card{flex:0 0 min(300px,82%);scroll-snap-align:start;font-size:13.5px;padding:18px}.rg>*{min-width:0}
 .who{display:flex;align-items:center;gap:10px;font-weight:700;margin-bottom:10px;font-size:14px}.who i{width:36px;height:36px;border-radius:50%;background:var(--red);display:grid;place-items:center;font-style:normal}
 .stars{color:var(--r2);letter-spacing:2px;font-size:13px}
 .ab{display:grid;grid-template-columns:1.3fr .7fr;gap:40px;align-items:center}
@@ -136,8 +136,8 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
  header .links{display:none}header .links.o{display:flex;flex-direction:column;position:fixed;inset:64px 0 auto;background:#070707;padding:20px;gap:16px;font-size:17px;border-bottom:1px solid var(--ln)}
  .btn{padding:11px 18px;font-size:13px}h2{font-size:clamp(22px,6.4vw,32px)}.eb{font-size:11.5px}
  .hero{min-height:560px;padding:84px 0 34px;align-items:flex-start}
- .hero .im{right:-30%;bottom:0;width:118%}
- .hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(7,7,7,.94) 0%,rgba(7,7,7,.65) 48%,transparent 78%)}
+
+ .hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(7,7,7,.92) 0%,rgba(7,7,7,.6) 50%,transparent 82%),linear-gradient(0deg,#070707 0%,transparent 20%)}
  .hero .tx{max-width:66%}.hero h1{font-size:clamp(24px,7.4vw,40px)}
  .pill{font-size:10.5px;padding:5px 11px;margin-bottom:14px}.hero p{font-size:12.5px;margin:12px 0 18px;max-width:100%}
  .hero .cta{gap:8px}.hero .btn{padding:10px 14px;font-size:12px}
@@ -151,12 +151,71 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
  .cards,.rv{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 -16px;padding:14px 16px 6px;scrollbar-width:none}
  .cards::-webkit-scrollbar,.rv::-webkit-scrollbar{display:none}.cards .card{flex:0 0 72%;scroll-snap-align:center}.rv .card{flex:0 0 78%;scroll-snap-align:center}
  .sg{grid-template-columns:1fr}.nums b{font-size:22px}
- .ag{grid-template-columns:1fr 1fr;gap:18px}.ag>div:first-child{grid-column:1/-1}.logo-t{font-size:24px}
+.ag>div:first-child{grid-column:1/-1}.logo-t{font-size:24px}
  .ph{width:100%;max-width:150px;border-width:6px;border-radius:26px}
  .ck li{font-size:12.5px;padding-left:38px;min-height:44px;line-height:24px}.ck .nd{width:24px;height:24px}.ck .ln.v{left:11px;top:34px;height:calc(100% - 24px)}
  .ab{grid-template-columns:1.5fr 1fr;gap:16px}.ab img{order:0;width:100%}blockquote{font-size:15px}.ab p{font-size:12.5px}
  .ct{padding:36px 16px}.ft{justify-content:center;text-align:center}.ft .links{flex-wrap:wrap;justify-content:center;gap:12px}.fb{justify-content:center;text-align:center}
 }
+.tm{border-top:1px solid var(--ln)}
+.tm-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:26px}
+.tm-head p{color:var(--mut);max-width:560px;margin:10px 0 0}
+.tm-nav{display:flex;gap:8px;flex:none}.tm-nav button{width:44px;height:44px;border-radius:50%;border:1px solid rgba(225,29,42,.7);background:#0b0b0b;color:#fff;font-size:22px;cursor:pointer;transition:.2s}.tm-nav button:hover{background:var(--red)}
+.tm-track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 0 14px;scrollbar-width:none;scroll-behavior:smooth}.tm-track::-webkit-scrollbar{display:none}
+.tm-card{flex:0 0 min(300px,78vw);scroll-snap-align:start;background:var(--p);border:1px solid var(--ln);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:transform .3s,border-color .3s,box-shadow .3s}
+.tm-card:hover{transform:translateY(-5px);border-color:var(--red);box-shadow:0 18px 50px rgba(225,29,42,.2)}
+@property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+.tm-card::before,.orb::before{content:'';position:absolute;inset:0;z-index:5;border-radius:inherit;padding:2px;pointer-events:none;
+ background:conic-gradient(from var(--ang),transparent 0deg 240deg,rgba(225,29,42,.35) 300deg,#ff3b47 358deg,transparent 360deg);
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.tm-card.vis::before,.orb.vis::before{animation:tmSpin 7s linear infinite}.tm-card:nth-child(even)::before{animation-delay:-3.5s}
+@keyframes tmSpin{to{--ang:360deg}}
+@media(prefers-reduced-motion:reduce){.tm-card.vis::before,.orb.vis::before{animation:none;--ang:260deg}}
+.tm-ph{position:relative;aspect-ratio:4/5;overflow:hidden;background:#000}
+.tm-ph img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;transition:transform .6s}.tm-card:hover .tm-ph img{transform:scale(1.04)}
+.tm-ph::after{content:'';position:absolute;inset:auto 0 0;height:55%;background:linear-gradient(transparent,rgba(7,7,7,.95))}
+.tm-cap{position:absolute;left:16px;right:70px;bottom:14px;z-index:2}.tm-cap h3{font-size:17px;line-height:1.2}.tm-cap p{margin:4px 0 0;color:var(--r2);font-weight:700;font-size:13.5px}
+.tm-badge{position:absolute;right:12px;bottom:12px;z-index:2;width:44px;height:44px;border-radius:50%;background:#000 url(assets/logo.png) center/cover;border:2px solid var(--red)}
+.tm-in{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1}
+.tm-ver{align-self:flex-start;border:1px solid rgba(225,29,42,.7);border-radius:99px;padding:3px 10px;font-size:11.5px}.tm-ver::before{content:'✓ ';color:var(--r2);font-weight:800}
+.tm-do{color:var(--mut);font-size:13.5px;margin:0}
+.tm-ct{list-style:none;margin:auto 0 0;padding:0;display:grid;gap:6px;font-size:13.5px}.tm-ct span{display:block;color:var(--mut);font-size:12px}.tm-ct a{border-bottom:1px solid var(--ln)}.tm-ct a:hover{border-color:var(--red)}
+.tm-bt{display:flex;gap:8px}.tm-bt .btn{flex:1;padding:10px 8px;font-size:13px}
+.tm-bar{height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:6px;position:relative;overflow:hidden}.tm-bar i{position:absolute;top:0;bottom:0;background:var(--red);border-radius:2px;transition:left .15s,width .15s}
+.tm:not(.can) .tm-nav,.tm:not(.can) .tm-bar{display:none}
+.tm-warn{margin-top:22px;padding:16px 18px;border:1px dashed rgba(255,255,255,.18);border-radius:var(--r);color:var(--mut);font-size:14px}.tm-warn b{color:#fff}.tm-warn a{color:#fff;text-decoration:underline}
+@media(max-width:900px){.tm-nav{display:none}.tm-track{margin:0 -16px;padding-left:16px;padding-right:16px;scroll-padding:0 16px}.tm-warn{font-size:12.5px}}
+.brand{display:flex;align-items:center;gap:10px}.brand span{font:900 italic 19px Montserrat;letter-spacing:.3px;white-space:nowrap}.brand b{color:var(--r2);font-weight:900}
+.kp{overflow:hidden}.kp::before{content:'';position:absolute;top:0;left:0;height:2px;width:30%;background:linear-gradient(90deg,transparent,var(--red),transparent);animation:kpSw 5s linear infinite}
+@keyframes kpSw{from{transform:translateX(-100%)}to{transform:translateX(340%)}}
+.orb{position:relative}
+dialog{overflow-y:auto}.lbi{margin-top:12px}.lbi b{font:800 18px Montserrat;display:block}.lbi small{color:var(--mut);display:block;margin-top:2px}
+.ld{margin-top:12px;font-size:14.5px;line-height:1.7;color:#ddd}.ld .sp{height:10px}.ld .h{font-weight:700;color:#fff}
+.lbb{position:sticky;bottom:-14px;background:#0b0b0b;padding:12px 0 2px;margin-top:10px;border-top:1px solid var(--ln)}
+.ladder{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 18px}.ladder span{padding:8px 14px;border:1px solid var(--ln);border-radius:99px;background:#0d0d0d;font-size:13px}.ladder span:first-child{border-color:rgba(225,29,42,.7)}.ladder i{color:var(--r2);font-style:normal}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.chips span{font-size:11px;border:1px solid var(--ln);border-radius:99px;padding:3px 9px;color:#ddd}.chips span.n{border-color:rgba(225,29,42,.7);background:rgba(225,29,42,.15);color:#fff}
+.card li.n{color:#fff;font-weight:600}.card li.n::before{content:'＋'}
+.stx{border-top:1px solid var(--ln)}
+.st-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}.st-tabs button{border:1px solid var(--ln);background:#0b0b0b;color:#cfcfcf;border-radius:99px;padding:8px 16px;font:600 13px Inter;cursor:pointer;transition:.2s}.st-tabs button.on{background:var(--red);border-color:var(--red);color:#fff}
+.st-track{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth}.st-track::-webkit-scrollbar{display:none}
+.sl{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:.9fr 2.1fr;gap:22px;background:linear-gradient(180deg,#141414,#0e0e0e);border:1px solid var(--ln);border-radius:var(--r);padding:22px;min-width:0}
+.sl h3{font-size:24px}.sl-h p{color:var(--mut);margin:6px 0 16px;font-size:13px}
+.pf{display:block;position:relative;border:1px solid var(--ln);border-radius:12px;overflow:hidden;padding:0;background:#000;cursor:zoom-in;max-width:230px;width:100%}.pf img{width:100%;height:150px;object-fit:cover;object-position:top;opacity:.85;transition:.3s}.pf:hover img{opacity:1;transform:scale(1.03)}.pf span{position:absolute;inset:auto 0 0;background:linear-gradient(transparent,rgba(0,0,0,.92));padding:20px 10px 8px;font-size:12px;color:#fff;text-align:left}
+.sl-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-content:center}
+.mt{background:#0b0b0b;border:1px solid var(--ln);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px}.mt span{color:var(--mut);font-size:12.5px}.mt b{font:800 clamp(24px,2.8vw,34px)/1.05 Montserrat}.mt em{font-style:normal;font-size:12.5px;font-weight:700;color:var(--mut)}.mt em.up{color:#3ddc84}.mt em.dn{color:#ff6670}
+.cf-wrap{min-width:0}.cf{position:relative;height:430px}
+.ap{position:absolute;left:50%;top:50%;width:172px;aspect-ratio:9/19;padding:0;border:6px solid #1b1b1b;border-radius:28px;overflow:hidden;background:#000;cursor:pointer;transform:translate(-50%,-50%) translateX(calc(var(--x,0)*1px)) scale(var(--s,1));opacity:var(--o,1);z-index:var(--z,1);filter:brightness(var(--b,1));transition:transform .55s cubic-bezier(.2,.8,.2,1),opacity .4s,filter .5s,box-shadow .5s;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.ap img{width:100%;height:100%;object-fit:cover;object-position:top}.ap.on{box-shadow:0 30px 90px rgba(225,29,42,.4)}
+.cfc{text-align:center;color:var(--mut);font-size:13px;min-height:20px;margin:6px 0 0}
+@media(max-width:900px){.brand span{font-size:14px}.ag{grid-template-columns:1fr;gap:10px}.cf{height:340px}.ap{width:136px}.sl{grid-template-columns:1fr;padding:16px}.sl-g{grid-template-columns:repeat(2,1fr)}.pf{max-width:100%}.mt b{font-size:22px}.ld{font-size:13.5px}.ladder span{font-size:12px;padding:6px 11px}}
+@media(max-width:360px){.brand span{display:none}}
+@media(prefers-reduced-motion:reduce){.kp::before{animation:none;opacity:.4}}
+.links{white-space:nowrap;gap:18px}nav{gap:18px}.nav-t{white-space:nowrap}
+.mt{min-width:0}.mt b{display:block;white-space:nowrap;overflow:hidden;font-size:clamp(22px,2.4vw,30px);line-height:1.1}
+@media(max-width:1180px){.mgr{display:none}}
+@media(max-width:1000px){.brand span{display:none}}
+@media(max-width:900px){.brand span{display:inline;font-size:14px}}
+@media(max-width:360px){.brand span{display:none}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
@@ -169,16 +228,16 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
 </defs></svg>
 
 <header id="hd"><nav class="w">
- <a href="#top" class="brand"><img src="assets/logo.png" alt="CARFORSALE.UA"></a>
- <div class="links" id="lk"><a href="#how">Як це працює</a><a href="#tariffs">Тарифи</a><a href="#app">Додаток</a><a href="#reviews">Відгуки</a><a href="#about">Про нас</a><a href="#faq">Питання</a></div>
- <a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b2 sm nav-t" data-href="link.manager">Зв’язатися з менеджером</a>
+ <a href="#top" class="brand" aria-label="CARFORSALE.UA"><img src="assets/logo.png" alt="" width="46" height="46"><span>CAR<b>FOR</b>SALE.UA</span></a>
+ <div class="links" id="lk"><a href="#how">Як це працює</a><a href="#tariffs">Тарифи</a><a href="#app">Додаток</a><a href="#reviews">Відгуки</a><a href="#about">Про нас</a><a href="#team">Команда</a><a href="#faq">Питання</a></div>
+ <a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b2 sm nav-t mgr" data-href="link.manager">Написати менеджеру</a>
  <a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b1 sm" data-href="link.nav_sell">Продати авто</a>
  <button class="burger" id="bg" aria-label="Меню">☰</button>
 </nav></header>
 
 <main id="top">
 <div class="hero">
- <img class="im" src="assets/hero.webp" alt="Чорний BMW на тлі нічного міста">
+ <img class="im" src="assets/hero-bmw.webp" alt="Чорний BMW у преміальному шоурумі" fetchpriority="high">
  <canvas id="smoke" aria-hidden="true"></canvas>
  <div class="w"><div class="tx">
   <span class="pill">◆ Онлайн продаж автомобілів в Україні</span>
@@ -199,7 +258,8 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
  <a class="btn b2 sm" target="_blank" rel="noopener" href="https://www.instagram.com/carforsale.ua_online/" data-href="link.instagram">Переглянути всі авто →</a>
 </div>
 <div class="rail" id="rail"></div></section>
-<dialog id="lb"><button class="x" id="cx" aria-label="Закрити">✕</button><img id="li" alt=""><div class="lb"><div><b id="lt"></b><small id="ls"></small></div><div class="cta"><button class="btn b2 sm" id="lp" aria-label="Попереднє">←</button><a class="btn b1 sm" id="lc" href="#">Зателефонувати</a><button class="btn b2 sm" id="ln" aria-label="Наступне">→</button></div></div></dialog>
+<dialog id="lb"><button class="x" id="cx" aria-label="Закрити">✕</button><img id="li" alt=""><div class="lbi"><b id="lt"></b><small id="ls"></small><div id="ld" class="ld"></div></div><div class="lbb cta"><button class="btn b2 sm" id="lp" aria-label="Попереднє">←</button><a class="btn b1 sm" id="lc" href="#">Зателефонувати</a><button class="btn b2 sm" id="ln" aria-label="Наступне">→</button></div></dialog>
+<dialog id="pfd"><button class="x" id="pfx" aria-label="Закрити">✕</button><img id="pfi" alt="Скріншот статистики"></dialog>
 
 <section id="how" class="how"><img class="bg" src="assets/steps-bg.webp" alt="" loading="lazy"><div class="w hw">
  <div><div class="eb">Як це працює?</div><h2>Всього 3 простих<br><span class="red">кроки</span></h2><p>Швидко, зручно та без зайвих посередників.</p><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b1 sm" data-href="link.how_sell">Розмістити оголошення →</a></div>
@@ -212,28 +272,25 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
 
 <section id="tariffs" class="tf"><div class="w tg">
  <div><div class="eb">Тарифи</div><h2>Оберіть<br><span class="red">найкращий план</span></h2><p>Гнучкі умови розміщення для вашої вигоди. Реклама триває до продажу авто.</p><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b1 sm" data-href="link.tariff_head">Замовити розміщення →</a></div>
- <div><div class="cards">
-  <div class="card"><h3>Стандарт</h3><small>Базове розміщення</small><div class="pr" data-k="tariff.std">350₴</div><ul><li>Публікація на 4 майданчиках</li><li>Термін: до продажу авто</li><li>Без прихованих платежів</li></ul><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b2 sm" data-href="link.tariff_std">Обрати тариф</a></div>
-  <div class="card pop"><span class="tag">Популярний</span><h3>PRO</h3><small>Максимальні можливості</small><div class="pr" data-k="tariff.pro">500₴</div><ul><li>4 майданчики та 9 груп партнерів</li><li>Термін: до продажу авто</li><li>Більше переглядів і дзвінків</li></ul><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b1 sm" data-href="link.tariff_pro">Обрати тариф</a></div>
-  <div class="card"><h3>VIP</h3><small>Преміум розміщення</small><div class="pr" data-k="tariff.vip">800₴</div><ul><li>4 майданчики та 18 груп партнерів</li><li>Розміщення на сайті</li><li>Максимальне охоплення</li></ul><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b2 sm" data-href="link.tariff_vip">Обрати тариф</a></div>
- </div><p class="note">Платите тільки після публікації, коли ми надіслали вам посилання.</p></div>
+ <div><div class="ladder" id="ladder" data-k="tariff.ladder">350 ₴ — 4 майданчики → +150 ₴ — ще 9 груп партнерів → +300 ₴ — ще 9 груп і сайт</div><div class="cards" id="tfCards"></div><p class="note">Платите тільки після публікації, коли ми надіслали вам посилання.</p></div>
 </div>
-<div class="w"><div class="eb" style="margin-top:50px">Статистика</div><h2>Реальні цифри</h2>
- <div class="sg">
-  <div class="card"><h3>Instagram</h3><div class="nums"><div><b data-k="ig.views">3,4 млн</b><span data-k="ig.views_label">переглядів за 30 днів</span></div><div><b data-k="ig.viewers">1,9 млн</b><span>унікальних глядачів</span></div><div><b data-k="ig.subs">25,4 тис.</b><span data-k="ig.subs_label">підписників, +5 408</span></div></div></div>
-  <div class="card"><h3>Facebook</h3><div class="nums"><div><b data-k="fb.views">4,3 млн</b><span data-k="fb.views_label">переглядів за 28 днів</span></div><div><b data-k="fb.viewers">1,7 млн</b><span>унікальних глядачів</span></div><div><b data-k="fb.subs">21 тис.</b><span>підписників</span></div></div></div>
- </div>
- <p class="cap">Лише на наших двох сторінках, Instagram і Facebook, за місяць понад <span data-k="stats.total_views">7,7 млн</span> переглядів (<span data-k="stats.total_viewers">3,6 млн</span> унікальних глядачів), не враховуючи 18 тематичних пабліків партнерів. Дані Meta Insights станом на <span data-k="stats.date">15.11.2026</span>.</p></div></section>
+</section>
+
+<section id="stats" class="stx"><div class="w">
+ <div class="eb">Статистика</div><h2>Реальні цифри</h2><p style="color:var(--mut);margin:10px 0 20px;max-width:620px">Цифри взяті з кабінетів наших сторінок. Натисніть «Переглянути оригінал», щоб побачити скріншот.</p>
+ <div class="st-tabs" id="stTabs"></div><div class="st-track" id="stTrack"></div>
+ <p class="cap">Лише на наших двох сторінках, Instagram і Facebook, за місяць понад <span data-k="stats.total_views">7,7 млн</span> переглядів (<span data-k="stats.total_viewers">3,6 млн</span> унікальних глядачів), не враховуючи 18 тематичних пабліків партнерів. Дані Meta Insights станом на <span data-k="stats.date">15.11.2026</span>.</p>
+</div></section>
 
 <section id="app" class="app"><div class="w ag">
  <div><div class="eb">Мобільний додаток</div><div class="logo-t">CAR<span class="red">FOR</span>SALE.UA</div><p>Завантажуйте додаток та продавайте авто ще зручніше!</p>
   <div class="cta"><a class="btn b2 sm" target="_blank" rel="noopener" href="https://apps.apple.com/ua/search?term=carforsale.ua" data-href="link.appstore">App Store</a><a class="btn b2 sm" target="_blank" rel="noopener" href="https://play.google.com/store/search?q=carforsale.ua&c=apps" data-href="link.googleplay">Google Play</a></div></div>
- <div class="ph"><img src="assets/app.webp" alt="Екран подачі оголошення в додатку CARFORSALE.UA" loading="lazy"></div>
+ <div class="cf-wrap"><div class="cf" id="cf" role="group" aria-label="Екрани додатка"></div><p class="cfc" id="cfc"></p></div>
  <ul class="ck" data-chain><li><span class="nd"><svg class="rg2" viewBox="0 0 28 28"><circle class="b" cx="14.0" cy="14.0" r="12.5"/><circle class="p" data-s="0" cx="14.0" cy="14.0" r="12.5" pathLength="1"/></svg><b>✓</b></span><i class="ln v" data-s="1"></i>Зручний інтерфейс</li><li><span class="nd"><svg class="rg2" viewBox="0 0 28 28"><circle class="b" cx="14.0" cy="14.0" r="12.5"/><circle class="p" data-s="2" cx="14.0" cy="14.0" r="12.5" pathLength="1"/></svg><b>✓</b></span><i class="ln v" data-s="3"></i>Швидкі повідомлення</li><li><span class="nd"><svg class="rg2" viewBox="0 0 28 28"><circle class="b" cx="14.0" cy="14.0" r="12.5"/><circle class="p" data-s="4" cx="14.0" cy="14.0" r="12.5" pathLength="1"/></svg><b>✓</b></span><i class="ln v" data-s="5"></i>Улюблені авто</li><li><span class="nd"><svg class="rg2" viewBox="0 0 28 28"><circle class="b" cx="14.0" cy="14.0" r="12.5"/><circle class="p" data-s="6" cx="14.0" cy="14.0" r="12.5" pathLength="1"/></svg><b>✓</b></span>Безкоштовне розміщення в додатку</li></ul>
 </div></section>
 
 <section id="reviews" style="border-top:1px solid var(--ln)"><div class="w rg">
- <div><div class="eb">Відгуки наших клієнтів</div><h2>Думка тих,<br>хто вже продав</h2><p class="gr"><span class="stars">★★★★★</span> <span data-k="reviews.summary">5,0 на Google · 5 відгуків</span></p><a class="btn b2 sm" target="_blank" rel="noopener" href="https://maps.google.com/?q=CARFORSALE.UA" data-href="link.reviews">Переглянути всі відгуки →</a></div>
+ <div><div class="eb">Відгуки наших клієнтів</div><h2>Думка тих,<br>хто вже продав</h2><p class="gr"><span class="stars">★★★★★</span> <span data-k="reviews.summary">5,0 на Google · 5 відгуків</span></p><div class="cta"><a class="btn b2 sm" target="_blank" rel="noopener" href="https://maps.google.com/?q=CARFORSALE.UA" data-href="link.reviews">Переглянути всі відгуки →</a><a class="btn b2 sm" target="_blank" rel="noopener" data-href="link.reviews_ig" href="https://www.instagram.com/s/aGlnaGxpZ2h0OjE3ODg0MjQ3NzI0NDcxMDAx?story_media_id=3862729749017986474&amp;vrfl=MTlkaTE5b2IzYnB3cA==">Реальні переписки в Instagram ↗</a></div></div>
  <div class="rv">
   <div class="card"><div class="who"><i>Ю</i>Юлька Андрушко</div><span class="stars">★★★★★</span><p>«Зробили чудовий рекламний банер і дуже швидко розмістили моє авто. Спочатку опублікували оголошення, і лише після перевірки я здійснила оплату.»</p></div>
   <div class="card"><div class="who"><i>О</i>Олег Будзан</div><span class="stars">★★★★★</span><p>«Авто продали швидко, а на кожному етапі надавали всю необхідну інформацію. Однозначно рекомендую!»</p></div>
@@ -269,6 +326,14 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
  </div>
 </section>
 
+<section id="team" class="tm"><div class="w">
+ <div class="tm-head"><div><div class="eb">Команда</div><h2>Наша команда</h2><p>Перш ніж надсилати дані чи гроші, перевірте співрозмовника. Працівник CARFORSALE.UA пише лише з контактів, указаних тут.</p></div>
+ <div class="tm-nav"><button type="button" data-d="-1" aria-label="Назад">‹</button><button type="button" data-d="1" aria-label="Далі">›</button></div></div>
+ <div class="tm-track" id="tmTrack" tabindex="0" aria-label="Працівники CARFORSALE.UA"></div>
+ <div class="tm-bar"><i></i></div>
+ <div class="tm-warn"><b>Пише хтось не зі списку?</b> Це не наш працівник. Ми не просимо оплату наперед: ви платите лише після того, як оголошення опубліковано і ви отримали посилання. Сумніваєтесь — напишіть менеджеру <a data-href="link.manager" href="https://t.me/Mr_carforsale" target="_blank" rel="noopener">@Mr_carforsale</a>.</div>
+</div></section>
+
 <section id="faq" style="border-top:1px solid var(--ln)"><div class="w" style="max-width:820px"><h2 style="margin-bottom:20px">Питання</h2>
  <details><summary>Коли потрібно платити?</summary><p>Після того, як ми опублікували оголошення й надіслали вам посилання. Ви перевіряєте, і лише тоді оплачуєте.</p></details>
  <details><summary>На який термін публікується оголошення?</summary><p>Без обмеження в днях. Оголошення залишається в рекламі до продажу автомобіля.</p></details>
@@ -278,11 +343,11 @@ footer{border-top:1px solid var(--ln);padding:30px 0;font-size:12.5px;color:var(
  <details><summary>Авто продано. Що робити?</summary><p>Напишіть нам, і ми знімемо банер із сайту та зупинимо рекламу.</p></details>
 </div></section>
 
-<section id="contact" style="padding-top:10px"><div class="w"><div class="ct"><h2>Готові продати авто?</h2><p>Напишіть нам зручним способом, і вже сьогодні ваше авто побачать тисячі покупців.</p>
+<section id="contact" style="padding-top:10px"><div class="w"><div class="ct orb"><h2>Готові продати авто?</h2><p>Напишіть нам зручним способом, і вже сьогодні ваше авто побачать тисячі покупців.</p>
  <div class="cta"><a class="btn b1" target="_blank" rel="noopener" href="https://t.me/Mr_carforsale" data-href="link.telegram">Telegram</a><a class="btn b2" target="_blank" rel="noopener" href="https://www.instagram.com/carforsale.ua_online/" data-href="link.instagram">Instagram</a><a class="btn b2" target="_blank" rel="noopener" href="https://www.facebook.com/people/Carforsaleua/61557268495368/" data-href="link.facebook">Facebook</a><a class="btn b2" target="_blank" rel="noopener" href="https://www.tiktok.com/@car.forsale" data-href="link.tiktok">TikTok</a><a class="btn b2" href="tel:+380731063852" data-href="link.phone" data-k="contact.phone_label">+380 73 106 38 52</a></div></div></div></section>
 </main>
 
-<footer><div class="w"><div class="ft"><img src="assets/logo.png" alt="CARFORSALE.UA"><div class="links"><a href="#how">Як це працює</a><a href="#tariffs">Тарифи</a><a href="#app">Додаток</a><a href="#reviews">Відгуки</a><a href="#about">Про нас</a><a href="#faq">Питання</a></div>
+<footer><div class="w"><div class="ft"><img src="assets/logo.png" alt="CARFORSALE.UA"><div class="links"><a href="#how">Як це працює</a><a href="#tariffs">Тарифи</a><a href="#app">Додаток</a><a href="#reviews">Відгуки</a><a href="#about">Про нас</a><a href="#team">Команда</a><a href="#faq">Питання</a></div>
  <div class="cta"><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b2 sm" data-href="link.manager">Зв’язатися з менеджером</a><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b1 sm" data-href="link.footer_sell">Продати авто</a></div></div>
  <div class="fb"><span>© <span id="yr"></span> CARFORSALE.UA. Всі права захищені. · <a href="mailto:carforsaleua@gmail.com" data-href="link.email" data-k="link.email">carforsaleua@gmail.com</a></span><span>Працюємо по всій Україні 🇺🇦</span>
  <div class="so"><a href="https://www.tiktok.com/@car.forsale" target="_blank" rel="noopener" aria-label="TikTok" data-href="link.tiktok">TT</a><a href="https://www.instagram.com/carforsale.ua_online/" target="_blank" rel="noopener" aria-label="Instagram" data-href="link.instagram">IG</a><a href="https://www.facebook.com/people/Carforsaleua/61557268495368/" target="_blank" rel="noopener" aria-label="Facebook" data-href="link.facebook">f</a></div></div></div></footer>
@@ -304,7 +369,8 @@ let CARS=[
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $=id=>document.getElementById(id),rail=$('rail'),lb=$('lb');let cur=0;
 const draw=()=>{rail.innerHTML=CARS.map((c,k)=>`<button class="car" data-k="${k}" aria-label="${esc(c.n)}, ${esc(c.p)}, ${esc(c.c)}"><img src="${esc(c.img)}" alt="${esc(c.n)}" ${k>2?'loading="lazy"':''}></button>`).join('')};draw();
-function show(k){cur=(k+CARS.length)%CARS.length;const c=CARS[cur];$('li').src=c.img;$('li').alt=c.n;$('lt').textContent=`${c.n} · ${c.p}`;$('ls').textContent=`Продаж у м. ${c.c}`+(c.d?` · ${c.d}`:'');$('lc').href='tel:'+c.t;$('lc').textContent='Зателефонувати '+c.o}
+function fmtD(t){if(!t)return'';t=String(t).replace(/\s*(?:✅|✔️|☑️)/g,m=>'\n'+m.trim()).replace(/\s*(?:✨|📝)/g,m=>'\n\n'+m.trim()).replace(/^\n+/,'');return t.split('\n').map(l=>{l=l.trim();const h=l.match(/^((?:✨|📝)[^:]*:)\s*(.+)$/);if(h)return`<div class="h">${esc(h[1])}</div><div>${esc(h[2])}</div>`;return l?`<div${/^(✨|📝)/.test(l)?' class="h"':''}>${esc(l)}</div>`:'<div class="sp"></div>'}).join('')}
+function show(k){cur=(k+CARS.length)%CARS.length;const c=CARS[cur];$('li').src=c.img;$('li').alt=c.n;$('lt').textContent=`${c.n} · ${c.p}`;$('ls').textContent=`Продаж у м. ${c.c}`;$('ld').innerHTML=fmtD(c.d);$('lc').href='tel:'+c.t;$('lc').textContent='Зателефонувати '+c.o}
 rail.onclick=e=>{const b=e.target.closest('.car');if(b){show(+b.dataset.k);lb.showModal()}};
 $('cx').onclick=()=>lb.close();$('lp').onclick=()=>show(cur-1);$('ln').onclick=()=>show(cur+1);lb.onclick=e=>{if(e.target===lb)lb.close()};
 let sx=0;lb.addEventListener('touchstart',e=>sx=e.touches[0].clientX);lb.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>50)show(cur+(d<0?1:-1))});
@@ -328,12 +394,87 @@ let tk=false;const upd=()=>{tk=false;const vh=innerHeight;for(const{c,els,n}of c
 els.forEach((e,i)=>{const l=cl(p*n-i);if(e.classList.contains('ln'))e.style.setProperty('--t',l);else{e.style.strokeDashoffset=1-l;const o=e.closest('.it,.step,li');if(o)o.classList.toggle('on',l>.97)}})}};
 const rq=()=>{if(!tk){tk=true;requestAnimationFrame(upd)}};addEventListener('scroll',rq,{passive:true});addEventListener('resize',rq);upd()})();
 
+/* ===== КОМАНДА (запасні дані, якщо база недоступна) ===== */
+const TEAM=[
+{name:'Русин Дмитро Петрович',role:'Менеджер з реклами',desc:'Розміщення реклами авто та бізнесу на наших платформах: консультація, оформлення, оплата.',photo:'assets/team/dmytro.webp',telegram:'@CARRSR',viber:'+380992057129'},
+{name:'Будзан Олег Михайлович',role:'Менеджер з реклами авто',desc:'Розміщення авто на наших платформах: консультація, оформлення, оплата.',photo:'assets/team/oleh.webp',telegram:'+380964776005',phone:'+380964776005',whatsapp:'https://wa.me/message/D5ZGXUZ4UYNTN1'}
+];
+const tmEl=$('tmTrack'),tmSec=$('team'),tmBar=document.querySelector('.tm-bar i'),isU=v=>/^https?:\/\//i.test(v),dg=v=>v.replace(/[^\d+]/g,'');
+function tmUpd(){const sw=tmEl.scrollWidth,cw=tmEl.clientWidth;tmSec.classList.toggle('can',sw>cw+4);tmBar.style.width=(cw/sw*100)+'%';tmBar.style.left=(tmEl.scrollLeft/sw*100)+'%'}
+const tmIO=new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('vis',e.isIntersecting)));
+function renderTeam(list){tmSec.hidden=!list.length;
+ tmEl.innerHTML=list.map(m=>{const c=[];
+  if(m.telegram)c.push(['Telegram',isU(m.telegram)?m.telegram:'https://t.me/'+(m.telegram[0]==='+'?dg(m.telegram):m.telegram.replace(/^@/,'')),isU(m.telegram)?'Написати':m.telegram[0]==='+'?m.telegram:'@'+m.telegram.replace(/^@/,'')]);
+  if(m.viber)c.push(['Viber','viber://chat?number=%2B'+dg(m.viber).replace(/\D/g,''),m.viber]);
+  if(m.whatsapp)c.push(['WhatsApp',isU(m.whatsapp)?m.whatsapp:'https://wa.me/'+dg(m.whatsapp).replace(/\D/g,''),isU(m.whatsapp)?'Написати':m.whatsapp]);
+  if(m.phone)c.push(['Телефон','tel:'+dg(m.phone),m.phone]);
+  const b=[c[0],c.find((x,i)=>i&&x[0]!=='Телефон')||c[1]].filter(Boolean);
+  const tg=u=>u.startsWith('http')?' target="_blank" rel="noopener"':'';
+  return `<article class="tm-card"><div class="tm-ph"><img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)} CARFORSALE.UA" loading="lazy"><span class="tm-badge" role="img" aria-label="Логотип CARFORSALE.UA"></span><div class="tm-cap"><h3>${esc(m.name)}</h3><p>${esc(m.role)}</p></div></div><div class="tm-in"><span class="tm-ver">Перевірений працівник</span><p class="tm-do">${esc(m.desc)}</p><ul class="tm-ct">${c.map(x=>`<li><span>${x[0]}</span><a href="${esc(x[1])}"${tg(x[1])}>${esc(x[2])}</a></li>`).join('')}</ul><div class="tm-bt">${b.map((x,i)=>`<a class="btn ${i?'b2':'b1'} sm" href="${esc(x[1])}"${tg(x[1])}>${x[0]==='Телефон'?'Подзвонити':x[0]}</a>`).join('')}</div></div></article>`}).join('');
+ tmUpd();tmIO.disconnect();tmEl.querySelectorAll('.tm-card').forEach(c=>tmIO.observe(c))}
+document.querySelectorAll('.tm-nav button').forEach(b=>b.onclick=()=>tmEl.scrollBy({left:+b.dataset.d*(tmEl.querySelector('.tm-card').offsetWidth+18)}));
+tmEl.addEventListener('scroll',tmUpd,{passive:true});addEventListener('resize',tmUpd);renderTeam(TEAM);
+
+/* ===== НАЛАШТУВАННЯ, ТАРИФИ, СТАТИСТИКА, КАРУСЕЛЬ ДОДАТКА ===== */
+const SET={},TGU='https://t.me/Mr_carforsale',RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function ladder(){const e=$('ladder');if(!e)return;const p=e.textContent.split('→').map(x=>x.trim()).filter(Boolean);e.innerHTML=p.map((x,i)=>(i?'<i>→</i>':'')+`<span>${esc(x)}</span>`).join('')}
+function applySet(){for(const[k,v]of Object.entries(SET)){if(v==='')continue;document.querySelectorAll('[data-k="'+k+'"]').forEach(e=>e.textContent=v);document.querySelectorAll('[data-href="'+k+'"]').forEach(e=>{e.href=k==='link.phone'?'tel:'+v.replace(/[^+\d]/g,''):k==='link.email'?'mailto:'+v:v})}ladder()}
+const oIO=new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('vis',e.isIntersecting)));
+const orbs=()=>document.querySelectorAll('.orb').forEach(e=>oIO.observe(e));
+
+const TARIFFS=[
+{name:'Стандарт',price:'350₴',subtitle:'Базове розміщення',badge:'',places:'Instagram, Telegram, TikTok, Facebook',features:'Фірмовий банер вашого авто\nПублікація на 4 наших майданчиках\nРеклама до продажу авто\nОплата після публікації'},
+{name:'PRO',price:'500₴',subtitle:'Максимальні можливості',badge:'Популярний',places:'Instagram, Telegram, TikTok, Facebook, +9 груп партнерів',features:'Усе зі Стандарту\n+Ще 9 тематичних груп партнерів\n+Ширше охоплення аудиторії\nОплата після публікації'},
+{name:'VIP',price:'800₴',subtitle:'Преміум розміщення',badge:'',places:'Instagram, Telegram, TikTok, Facebook, +18 груп партнерів, +Сайт CARFORSALE.UA',features:'Усе зі Стандарту\n+18 тематичних груп партнерів\n+Розміщення на сайті CARFORSALE.UA\n+Максимальне охоплення'}];
+const TK=['link.tariff_std','link.tariff_pro','link.tariff_vip'];
+function renderTariffs(L){$('tfCards').innerHTML=L.map((t,i)=>{const pop=!!t.badge,k=TK[i]||'link.tariff_head';
+ const chips=(t.places||'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>x[0]==='+'?`<span class="n">+ ${esc(x.slice(1).trim())}</span>`:`<span>${esc(x)}</span>`).join('');
+ const lis=(t.features||'').split('\n').map(x=>x.trim()).filter(Boolean).map(x=>x[0]==='+'?`<li class="n">${esc(x.slice(1).trim())}</li>`:`<li>${esc(x)}</li>`).join('');
+ return `<div class="card${pop?' pop orb':''}">${pop?`<span class="tag">${esc(t.badge)}</span>`:''}<h3>${esc(t.name)}</h3><small>${esc(t.subtitle||'')}</small><div class="pr">${esc(t.price)}</div><div class="chips">${chips}</div><ul>${lis}</ul><a class="btn ${pop?'b1':'b2'} sm" target="_blank" rel="noopener" data-href="${k}" href="${esc(SET[k]||TGU)}">Обрати тариф</a></div>`}).join('');applySet();orbs()}
+
+const STATS=[
+{title:'Instagram',subtitle:'за 30 днів · станом на 15.11.2026',proof:'assets/stats/instagram.webp',items:[{label:'Перегляди',value:'3 402 246',delta:'+209,6%'},{label:'Унікальні глядачі',value:'1 875 588',delta:'+151,0%'},{label:'Підписники',value:'25 362',delta:'+27,9%'},{label:'Приріст підписників',value:'+5 408',delta:''}]},
+{title:'Facebook',subtitle:'за 28 днів · станом на 15.11.2026',proof:'assets/stats/facebook.webp',items:[{label:'Перегляди',value:'4,3 млн',delta:'−18%'},{label:'Унікальні глядачі',value:'1,7 млн',delta:''},{label:'Взаємодії',value:'156 969',delta:'−31%'},{label:'Підписники',value:'21 тис.',delta:''}]}];
+function countUp(el){const t=el.dataset.v||'',m=t.match(/\d[\d\s\u00a0]*(?:,\d+)?/);if(!m||RM)return;const raw=m[0].replace(/[\s\u00a0]+$/,''),dec=(raw.split(',')[1]||'').length,num=parseFloat(raw.replace(/[\s\u00a0]/g,'').replace(',','.')),grp=/[\s\u00a0]/.test(raw),pre=t.slice(0,m.index),post=t.slice(m.index+raw.length);let s0=null;
+ const f=n=>{let[a,b]=n.toFixed(dec).split('.');if(grp)a=a.replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0');return b?a+','+b:a};
+ const st=ts=>{if(s0===null)s0=ts;const p=Math.min(1,(ts-s0)/1100);el.textContent=pre+f(num*(1-Math.pow(1-p,3)))+post;if(p<1)requestAnimationFrame(st)};requestAnimationFrame(st)}
+const stIO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const i=[...e.target.parentNode.children].indexOf(e.target);document.querySelectorAll('#stTabs button').forEach((b,j)=>b.classList.toggle('on',i===j));e.target.querySelectorAll('b[data-v]').forEach(countUp)}),{threshold:.6});
+function fitMt(){document.querySelectorAll('.mt b').forEach(b=>{b.style.fontSize='';let z=parseFloat(getComputedStyle(b).fontSize);if(!z||!b.clientWidth)return;while(b.scrollWidth>b.clientWidth+1&&z>13){z-=1;b.style.fontSize=z+'px'}})}
+addEventListener('resize',fitMt);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitMt);
+function renderStats(L){const sec=$('stats');sec.hidden=!L.length;if(!L.length)return;stIO.disconnect();
+ const cl=d=>/^\+/.test(d)?'up':/^[−-]/.test(d)?'dn':'';
+ $('stTabs').innerHTML=L.map((g,i)=>`<button type="button" data-i="${i}" class="${i?'':'on'}">${esc(g.title)}</button>`).join('');
+ $('stTrack').innerHTML=L.map(g=>`<article class="sl"><div class="sl-h"><h3>${esc(g.title)}</h3><p>${esc(g.subtitle||'')}</p>${g.proof?`<button type="button" class="pf" data-img="${esc(g.proof)}" aria-label="Переглянути скріншот статистики"><img src="${esc(g.proof)}" alt="" loading="lazy"><span>Переглянути оригінал ↗</span></button>`:''}</div><div class="sl-g">${g.items.map(i=>{const c=cl(i.delta||'');return `<div class="mt"><span>${esc(i.label)}</span><b data-v="${esc(i.value)}">${esc(i.value)}</b>${i.delta?`<em class="${c}">${c==='up'?'▲ ':c==='dn'?'▼ ':''}${esc(i.delta)}</em>`:''}</div>`}).join('')}</div></article>`).join('');
+ [...$('stTrack').children].forEach(a=>stIO.observe(a));fitMt()}
+$('stTabs').onclick=e=>{const b=e.target.closest('button');if(b&&$('stTrack').children[+b.dataset.i])$('stTrack').children[+b.dataset.i].scrollIntoView({behavior:'smooth',inline:'start',block:'nearest'})};
+document.addEventListener('click',e=>{const b=e.target.closest('.pf');if(b){$('pfi').src=b.dataset.img;$('pfd').showModal()}});
+$('pfx').onclick=()=>$('pfd').close();$('pfd').onclick=e=>{if(e.target===$('pfd'))$('pfd').close()};
+
+let APP=[{img:'assets/app.webp',cap:''}],act=0,cfH=false,cfV=true;
+function cfLay(){const el=$('cf'),n=APP.length,st=Math.min(86,el.clientWidth*.2);[...el.children].forEach((p,i)=>{let d=i-act;if(d>n/2)d-=n;if(d<-n/2)d+=n;const a=Math.abs(d);p.classList.toggle('on',d===0);p.style.cssText=`--x:${d*st};--s:${d===0?1.1:Math.max(.6,1-a*.1)};--z:${20-a};--o:${a>2?0:1};--b:${d===0?1:Math.max(.3,.62-a*.12)};pointer-events:${a>2?'none':'auto'}`});$('cfc').textContent=APP[act]?APP[act].cap:''}
+function renderCF(L){if(L.length&&L.length<3){const b=L.slice();while(L.length<3)L=L.concat(b)}APP=L;act=0;$('cf').innerHTML=L.map((s,i)=>`<button type="button" class="ap" data-i="${i}" aria-label="Екран додатка ${i+1}"><img src="${esc(s.img)}" alt="Екран додатка CARFORSALE.UA ${i+1}" loading="lazy"></button>`).join('');cfLay()}
+const cfEl=$('cf');
+cfEl.addEventListener('pointerover',e=>{const p=e.target.closest('.ap');if(p&&+p.dataset.i!==act){act=+p.dataset.i;cfLay()}});
+cfEl.addEventListener('click',e=>{const p=e.target.closest('.ap');if(p){act=+p.dataset.i;cfLay()}});
+cfEl.addEventListener('mouseenter',()=>cfH=true);cfEl.addEventListener('mouseleave',()=>cfH=false);
+new IntersectionObserver(([e])=>cfV=e.isIntersecting).observe(cfEl);
+setInterval(()=>{if(!RM&&!cfH&&cfV&&APP.length>1){act=(act+1)%APP.length;cfLay()}},3400);
+addEventListener('resize',cfLay);
+
+/* автопрокрутка відгуків */
+(()=>{const t=document.querySelector('.rv');if(!t)return;let hov=false,vis=true;new IntersectionObserver(([e])=>vis=e.isIntersecting).observe(t);
+['pointerenter','focusin','touchstart'].forEach(ev=>t.addEventListener(ev,()=>hov=true,{passive:true}));['pointerleave','focusout','touchend'].forEach(ev=>t.addEventListener(ev,()=>setTimeout(()=>hov=false,1800)));
+setInterval(()=>{if(hov||!vis||RM)return;const c=t.querySelector('.card');if(!c)return;if(t.scrollLeft+t.clientWidth>=t.scrollWidth-6)t.scrollTo({left:0});else t.scrollBy({left:c.offsetWidth+14})},4200)})();
+renderTariffs(TARIFFS);renderStats(STATS);renderCF(APP);ladder();orbs();
+
 /* ===== дані з бази (Supabase). Якщо config.js порожній або база недоступна, лишаються значення вище ===== */
 (()=>{const C=window.CFG;if(!C||!C.url)return;const H={apikey:C.key,Authorization:'Bearer '+C.key},g=t=>fetch(`${C.url}/rest/v1/${t}`,{headers:H}).then(r=>r.ok?r.json():Promise.reject());
 g('cars?select=*&active=eq.true&order=sort.asc,id.desc').then(d=>{CARS=d.map(r=>({n:r.title,p:r.price,c:r.city,t:r.phone,o:r.owner,d:r.description,img:r.image}));draw()}).catch(()=>{});
-g('settings?select=key,value').then(d=>d.forEach(({key,value})=>{if(value==='')return;
- document.querySelectorAll('[data-k="'+key+'"]').forEach(e=>e.textContent=value);
- document.querySelectorAll('[data-href="'+key+'"]').forEach(e=>{e.href=key==='link.phone'?'tel:'+value.replace(/[^+\d]/g,''):key==='link.email'?'mailto:'+value:value})})).catch(()=>{});
+g('settings?select=key,value').then(d=>{d.forEach(({key,value})=>SET[key]=value);applySet()}).catch(()=>{});
+g('team?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>renderTeam(d.map(r=>({name:r.name,role:r.role||'',desc:r.description||'',photo:r.photo||'',telegram:r.telegram,viber:r.viber,phone:r.phone,whatsapp:r.whatsapp})))).catch(()=>{});
+g('tariffs?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>{if(d.length)renderTariffs(d)}).catch(()=>{});
+g('stat_groups?select=*&active=eq.true&order=sort.asc,id.asc').then(async G=>{const I=await g('stat_items?select=*&active=eq.true&order=sort.asc,id.asc');renderStats(G.map(x=>({title:x.title,subtitle:x.subtitle,proof:x.proof,items:I.filter(i=>i.grp===x.title)})).filter(x=>x.items.length))}).catch(()=>{});
+g('app_screens?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>{if(d.length)renderCF(d.map(r=>({img:r.image,cap:r.caption||''})))}).catch(()=>{});
 g('reviews?select=*&active=eq.true&order=sort.asc,id.desc').then(d=>{if(!d.length)return;document.querySelector('.rv').innerHTML=d.map(r=>`<div class="card"><div class="who"><i>${esc(r.name.charAt(0))}</i>${esc(r.name)}</div><span class="stars">${'★'.repeat(Math.min(5,Math.max(1,r.stars||5)))}</span><p>«${esc(r.text)}»</p></div>`).join('')}).catch(()=>{})})();
 </script>
 </body>
