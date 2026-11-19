@@ -216,6 +216,9 @@ dialog{overflow-y:auto}.lbi{margin-top:12px}.lbi b{font:800 18px Montserrat;disp
 @media(max-width:1000px){.brand span{display:none}}
 @media(max-width:900px){.brand span{display:inline;font-size:14px}}
 @media(max-width:360px){.brand span{display:none}}
+#pfd{width:fit-content;max-width:94vw;max-height:96vh;padding:10px}#pfd img{display:block;width:auto;max-width:100%;height:auto;max-height:calc(96vh - 22px);margin:0 auto}
+.ap{width:160px;aspect-ratio:9/19.5;background:#000}.ap img{object-fit:contain;object-position:center}
+@media(max-width:900px){.ap{width:128px}.cf{height:330px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
@@ -451,7 +454,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('.pf');if(b){$('p
 $('pfx').onclick=()=>$('pfd').close();$('pfd').onclick=e=>{if(e.target===$('pfd'))$('pfd').close()};
 
 let APP=[{img:'assets/app.webp',cap:''}],act=0,cfH=false,cfV=true;
-function cfLay(){const el=$('cf'),n=APP.length,st=Math.min(86,el.clientWidth*.2);[...el.children].forEach((p,i)=>{let d=i-act;if(d>n/2)d-=n;if(d<-n/2)d+=n;const a=Math.abs(d);p.classList.toggle('on',d===0);p.style.cssText=`--x:${d*st};--s:${d===0?1.1:Math.max(.6,1-a*.1)};--z:${20-a};--o:${a>2?0:1};--b:${d===0?1:Math.max(.3,.62-a*.12)};pointer-events:${a>2?'none':'auto'}`});$('cfc').textContent=APP[act]?APP[act].cap:''}
+function cfLay(){const el=$('cf'),n=APP.length,st=Math.min(104,el.clientWidth*.24);[...el.children].forEach((p,i)=>{let d=i-act;if(d>n/2)d-=n;if(d<-n/2)d+=n;const a=Math.abs(d);p.classList.toggle('on',d===0);p.style.cssText=`--x:${d*st};--s:${d===0?1.08:Math.max(.6,1-a*.1)};--z:${20-a};--o:${a>2?0:1};--b:${d===0?1:Math.max(.3,.62-a*.12)};pointer-events:${a>2?'none':'auto'}`});$('cfc').textContent=APP[act]?APP[act].cap:''}
 function renderCF(L){if(L.length&&L.length<3){const b=L.slice();while(L.length<3)L=L.concat(b)}APP=L;act=0;$('cf').innerHTML=L.map((s,i)=>`<button type="button" class="ap" data-i="${i}" aria-label="Екран додатка ${i+1}"><img src="${esc(s.img)}" alt="Екран додатка CARFORSALE.UA ${i+1}" loading="lazy"></button>`).join('');cfLay()}
 const cfEl=$('cf');
 cfEl.addEventListener('pointerover',e=>{const p=e.target.closest('.ap');if(p&&+p.dataset.i!==act){act=+p.dataset.i;cfLay()}});
