@@ -229,6 +229,10 @@ dialog#lb[open]{display:flex}
 body:has(dialog[open]){overflow:hidden}
 #lh{margin-top:12px}#lh.on{background:var(--red);border-color:var(--red)}
 .lpart{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.lp-wrap{display:flex;align-items:center;gap:6px;min-width:0}
+.lp-wrap .lp{flex:1 1 auto}
+.lp-post{flex:none;padding:6px 10px;border-radius:10px;border:1px solid rgba(225,29,42,.7);background:rgba(225,29,42,.14);color:#fff;font-size:11.5px;font-weight:700;white-space:nowrap;transition:.2s}
+.lp-post:hover{background:var(--red)}
 .lp{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--ln);border-radius:12px;background:#0d0d0d;min-width:0}a.lp:hover{border-color:var(--red)}
 .lp img,.lp i{width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none;background:#222}.lp span{min-width:0}.lp b{display:block;font-size:13px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lp small{color:var(--mut);font-size:11.5px}
 .pt{border-top:1px solid var(--ln)}.pt-lead{color:var(--mut);margin:10px 0 0;max-width:560px}
@@ -417,7 +421,7 @@ let PL={};
 function fmtD(t){if(!t)return'';t=String(t).replace(/\s*(?:✅|✔️|☑️)/g,m=>'\n'+m.trim()).replace(/\s*(?:✨|📝)/g,m=>'\n\n'+m.trim()).replace(/^\n+/,'');return t.split('\n').map(l=>{l=l.trim();const h=l.match(/^((?:✨|📝)[^:]*:)\s*(.+)$/);if(h)return`<div class="h">${esc(h[1])}</div><div>${esc(h[2])}</div>`;return l?`<div${/^(✨|📝)/.test(l)?' class="h"':''}>${esc(l)}</div>`:'<div class="sp"></div>'}).join('')}
 function show(k){cur=(k+CARS.length)%CARS.length;const c=CARS[cur];$('li').src=c.img;$('li').alt=c.n;$('lt').textContent=`${c.n} · ${c.p}`;$('ls').textContent=`Продаж у м. ${c.c}`;$('ld').innerHTML=fmtD(c.d);
  const pl=(c.id&&PL[c.id])||[];$('lh').hidden=!pl.length;$('lh').classList.remove('on');$('lh').textContent=`Де розміщено (${pl.length})`;$('lpart').hidden=true;
- $('lpart').innerHTML=pl.map(p=>`<a class="lp"${okU(p.link)?` href="${esc(p.link)}" target="_blank" rel="noopener"`:''}>${p.logo?`<img src="${esc(p.logo)}" alt="" loading="lazy">`:'<i></i>'}<span><b>${esc(p.name)}</b>${p.followers?`<small>${esc(p.followers)}</small>`:''}</span></a>`).join('');$('lc').href='tel:'+c.t;$('lc').textContent='Зателефонувати '+c.o}
+ $('lpart').innerHTML=pl.map(p=>{const mainLink=okU(p.link)?` href="${esc(p.link)}" target="_blank" rel="noopener"`:'';const postBtn=okU(p.post_url)?`<a class="lp-post" href="${esc(p.post_url)}" target="_blank" rel="noopener">До посту ↗</a>`:'';return `<div class="lp-wrap"><a class="lp"${mainLink}>${p.logo?`<img src="${esc(p.logo)}" alt="" loading="lazy">`:'<i></i>'}<span><b>${esc(p.name)}</b>${p.followers?`<small>${esc(p.followers)}</small>`:''}</span></a>${postBtn}</div>`}).join('');$('lc').href='tel:'+c.t;$('lc').textContent='Зателефонувати '+c.o}
 rail.onclick=e=>{const b=e.target.closest('.car');if(b){show(+b.dataset.k);lb.showModal()}};
 $('cx').onclick=()=>lb.close();$('lp').onclick=()=>show(cur-1);$('ln').onclick=()=>show(cur+1);lb.onclick=e=>{if(e.target===lb)lb.close()};
 let sx=0;lb.addEventListener('touchstart',e=>sx=e.touches[0].clientX);lb.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>50)show(cur+(d<0?1:-1))});
@@ -541,7 +545,7 @@ g('stat_groups?select=*&active=eq.true&order=sort.asc,id.asc').then(async G=>{co
 g('app_screens?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>{if(d.length)renderCF(d.map(r=>({img:r.image,cap:r.caption||''})))}).catch(()=>{});
 g('partners?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>renderPartners(d)).catch(()=>{});
 g('brands?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>renderBrands(d)).catch(()=>{});
-g('car_partners?select=car_id,partner_id').then(async L=>{const P=await g('partners?select=id,name,logo,link,followers&active=eq.true'),m=Object.fromEntries(P.map(p=>[p.id,p]));PL={};L.forEach(x=>{if(m[x.partner_id])(PL[x.car_id]=PL[x.car_id]||[]).push(m[x.partner_id])})}).catch(()=>{});
+g('car_partners?select=car_id,partner_id,post_url').then(async L=>{const P=await g('partners?select=id,name,logo,link,followers&active=eq.true'),m=Object.fromEntries(P.map(p=>[p.id,p]));PL={};L.forEach(x=>{const pid=x.partner_id??x.partner;if(m[pid])(PL[x.car_id]=PL[x.car_id]||[]).push({...m[pid],post_url:x.post_url||''})})}).catch(()=>{});
 g('reviews?select=*&active=eq.true&order=sort.asc,id.desc').then(d=>{if(!d.length)return;document.querySelector('.rv').innerHTML=d.map(r=>`<div class="card"><div class="who"><i>${esc(r.name.charAt(0))}</i>${esc(r.name)}</div><span class="stars">${'★'.repeat(Math.min(5,Math.max(1,r.stars||5)))}</span><p>«${esc(r.text)}»</p></div>`).join('')}).catch(()=>{})})();
 </script>
 </body>
