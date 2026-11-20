@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CARFORSALE.UA — Онлайн площадка автомобілів України</title>
 <meta name="description" content="Допомога у швидкому продажу авто через соцмережі, сайт та мобільний додаток. 800 000+ підписників, охоплення до 9 млн. Оплата після публікації.">
 <meta property="og:type" content="website">
@@ -219,6 +219,39 @@ dialog{overflow-y:auto}.lbi{margin-top:12px}.lbi b{font:800 18px Montserrat;disp
 #pfd{width:fit-content;max-width:94vw;max-height:96vh;padding:10px}#pfd img{display:block;width:auto;max-width:100%;height:auto;max-height:calc(96vh - 22px);margin:0 auto}
 .ap{width:160px;aspect-ratio:9/19.5;background:#000}.ap img{object-fit:contain;object-position:center}
 @media(max-width:900px){.ap{width:128px}.cf{height:330px}}
+[hidden]{display:none!important}
+dialog#lb{padding:0;overflow:hidden;flex-direction:column;border-radius:18px;width:min(94vw,max(300px,calc((100dvh - 230px)*4/3)),900px);max-height:calc(100dvh - 20px)}
+dialog#lb[open]{display:flex}
+#lb #li{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:0;flex:none}
+#lb .lbi{padding:14px 16px 8px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
+#lb .lbb{position:static;margin:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--ln);background:#0b0b0b;flex:none}
+.x{top:10px;right:10px;width:44px;height:44px;background:var(--red);border:2px solid #fff;font-size:22px;font-weight:700;line-height:1;box-shadow:0 4px 16px rgba(0,0,0,.7);z-index:30}.x:hover{background:#ff2f3c}
+body:has(dialog[open]){overflow:hidden}
+#lh{margin-top:12px}#lh.on{background:var(--red);border-color:var(--red)}
+.lpart{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.lp{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--ln);border-radius:12px;background:#0d0d0d;min-width:0}a.lp:hover{border-color:var(--red)}
+.lp img,.lp i{width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none;background:#222}.lp span{min-width:0}.lp b{display:block;font-size:13px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lp small{color:var(--mut);font-size:11.5px}
+.pt{border-top:1px solid var(--ln)}.pt-lead{color:var(--mut);margin:10px 0 0;max-width:560px}
+.pt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pt-grid:not(.open) .pc:nth-child(n+7){display:none}
+.pc{position:relative;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#141414,#0e0e0e);border:1px solid var(--ln);border-radius:var(--r);padding:18px;overflow:hidden;opacity:0;transform:translateY(18px);transition:opacity .6s,transform .6s,border-color .3s,box-shadow .3s;transition-delay:calc(var(--i,0)*70ms)}
+.pc.in{opacity:1;transform:none}.pc:hover{border-color:var(--red);box-shadow:0 14px 40px rgba(225,29,42,.18);transform:translateY(-4px)}
+.pc::before{content:'';position:absolute;top:0;left:0;height:2px;width:40%;background:linear-gradient(90deg,transparent,var(--red),transparent);transform:translateX(-120%)}.pc:hover::before{animation:kpSw 1.6s linear infinite}
+.pc-top{display:flex;gap:12px;align-items:center;min-width:0}.pc-logo{width:56px;height:56px;border-radius:50%;border:2px solid rgba(225,29,42,.7);overflow:hidden;background:#000;flex:none;display:grid;place-items:center}.pc-logo img{width:100%;height:100%;object-fit:cover}.pc-logo b{font:800 22px Montserrat;color:var(--r2)}
+.pc h3{font-size:16px;line-height:1.2}.pc-f{font-size:12.5px;color:var(--mut)}.pc-f b{color:#fff}
+.pc p{margin:0;color:var(--mut);font-size:13.5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pc .btn{margin-top:auto;align-self:flex-start}.pt-more{text-align:center;margin-top:22px}
+.bm{padding:34px 0 40px;border-top:1px solid var(--ln);position:relative;overflow:hidden}
+.bm::before{content:'';position:absolute;top:0;left:0;height:2px;width:30%;background:linear-gradient(90deg,transparent,var(--red),transparent);animation:kpSw 7s linear infinite}
+.bm-t{text-align:center;color:var(--mut);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin:0 16px 18px}
+.bm-m{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.bm-tr{display:flex;width:max-content;animation:bmGo 50s linear infinite;padding:6px 0}.bm-m:hover .bm-tr,.bm:not(.vis) .bm-tr{animation-play-state:paused}
+@keyframes bmGo{to{transform:translateX(-50%)}}
+.bm-i{display:flex;align-items:center;flex:none;position:relative;padding-right:64px;font:italic 800 24px Montserrat;color:#4a4a4a;white-space:nowrap;text-transform:uppercase;transition:color .3s}
+.bm-i::after{content:'◆';position:absolute;right:26px;top:50%;transform:translateY(-50%);color:var(--red);font-size:11px;font-style:normal}.bm-i:hover{color:#fff}
+.bm-i img{height:38px;width:auto;filter:grayscale(1) brightness(1.6);opacity:.7;transition:.3s}.bm-i:hover img{filter:none;opacity:1}
+@media(max-width:900px){.pt-grid{grid-template-columns:repeat(2,1fr);gap:10px}.pt-grid:not(.open) .pc:nth-child(n+5){display:none}.pc{padding:12px;gap:8px}.pc-logo{width:42px;height:42px}.pc h3{font-size:13px}.pc-f{font-size:11px}.pc p{font-size:12px;-webkit-line-clamp:2}.pc .btn{width:100%;padding:8px 6px;font-size:12px}.bm-i{font-size:18px;padding-right:44px}.bm-i::after{right:18px}.lpart{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.pc{opacity:1;transform:none;transition:none}.bm-tr{animation:none;flex-wrap:wrap;justify-content:center;width:auto}.bm-m{-webkit-mask-image:none;mask-image:none}.bm::before{animation:none}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
@@ -261,7 +294,7 @@ dialog{overflow-y:auto}.lbi{margin-top:12px}.lbi b{font:800 18px Montserrat;disp
  <a class="btn b2 sm" target="_blank" rel="noopener" href="https://www.instagram.com/carforsale.ua_online/" data-href="link.instagram">Переглянути всі авто →</a>
 </div>
 <div class="rail" id="rail"></div></section>
-<dialog id="lb"><button class="x" id="cx" aria-label="Закрити">✕</button><img id="li" alt=""><div class="lbi"><b id="lt"></b><small id="ls"></small><div id="ld" class="ld"></div></div><div class="lbb cta"><button class="btn b2 sm" id="lp" aria-label="Попереднє">←</button><a class="btn b1 sm" id="lc" href="#">Зателефонувати</a><button class="btn b2 sm" id="ln" aria-label="Наступне">→</button></div></dialog>
+<dialog id="lb"><button class="x" id="cx" aria-label="Закрити">✕</button><img id="li" alt=""><div class="lbi"><b id="lt"></b><small id="ls"></small><div id="ld" class="ld"></div><button type="button" class="btn b2 sm" id="lh" hidden>Де розміщено</button><div id="lpart" class="lpart" hidden></div></div><div class="lbb cta"><button class="btn b2 sm" id="lp" aria-label="Попереднє">←</button><a class="btn b1 sm" id="lc" href="#">Зателефонувати</a><button class="btn b2 sm" id="ln" aria-label="Наступне">→</button></div></dialog>
 <dialog id="pfd"><button class="x" id="pfx" aria-label="Закрити">✕</button><img id="pfi" alt="Скріншот статистики"></dialog>
 
 <section id="how" class="how"><img class="bg" src="assets/steps-bg.webp" alt="" loading="lazy"><div class="w hw">
@@ -299,6 +332,12 @@ dialog{overflow-y:auto}.lbi{margin-top:12px}.lbi b{font:800 18px Montserrat;disp
   <div class="card"><div class="who"><i>О</i>Олег Будзан</div><span class="stars">★★★★★</span><p>«Авто продали швидко, а на кожному етапі надавали всю необхідну інформацію. Однозначно рекомендую!»</p></div>
   <div class="card"><div class="who"><i>Д</i>Діма Русин</div><span class="stars">★★★★★</span><p>«Все чудово, менеджери ввічливі, зробили гарне оформлення мого авто, рекомендую»</p></div>
  </div></div></section>
+
+<section id="partners" class="pt" hidden><div class="w">
+ <div class="head"><div><div class="eb">Партнери</div><h2>Наші партнери</h2><p class="pt-lead">Ваше оголошення публікується на сторінках наших партнерів. Переходьте на них і перевіряйте самі.</p></div></div>
+ <div class="pt-grid" id="ptGrid"></div>
+ <div class="pt-more"><button type="button" class="btn b2" id="ptMore" hidden>Показати всіх партнерів</button></div>
+</div></section>
 
 <section id="about" style="border-top:1px solid var(--ln)"><div class="w ab">
  <div><div class="eb">Про нас</div><blockquote>Проєкт український і розвивається своїми силами. Ми будуємо чесну альтернативу великим авторинкам, без прихованих платежів і нав’язливої реклами.</blockquote>
@@ -350,6 +389,8 @@ dialog{overflow-y:auto}.lbi{margin-top:12px}.lbi b{font:800 18px Montserrat;disp
  <div class="cta"><a class="btn b1" target="_blank" rel="noopener" href="https://t.me/Mr_carforsale" data-href="link.telegram">Telegram</a><a class="btn b2" target="_blank" rel="noopener" href="https://www.instagram.com/carforsale.ua_online/" data-href="link.instagram">Instagram</a><a class="btn b2" target="_blank" rel="noopener" href="https://www.facebook.com/people/Carforsaleua/61557268495368/" data-href="link.facebook">Facebook</a><a class="btn b2" target="_blank" rel="noopener" href="https://www.tiktok.com/@car.forsale" data-href="link.tiktok">TikTok</a><a class="btn b2" href="tel:+380731063852" data-href="link.phone" data-k="contact.phone_label">+380 73 106 38 52</a></div></div></div></section>
 </main>
 
+<section id="brands" class="bm" hidden><p class="bm-t" data-k="brands.title">Авто популярних марок на нашому майданчику</p><div class="bm-m"><div class="bm-tr" id="bmTr"></div></div></section>
+
 <footer><div class="w"><div class="ft"><img src="assets/logo.png" alt="CARFORSALE.UA"><div class="links"><a href="#how">Як це працює</a><a href="#tariffs">Тарифи</a><a href="#app">Додаток</a><a href="#reviews">Відгуки</a><a href="#about">Про нас</a><a href="#team">Команда</a><a href="#faq">Питання</a></div>
  <div class="cta"><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b2 sm" data-href="link.manager">Зв’язатися з менеджером</a><a href="https://t.me/Mr_carforsale" target="_blank" rel="noopener" class="btn b1 sm" data-href="link.footer_sell">Продати авто</a></div></div>
  <div class="fb"><span>© <span id="yr"></span> CARFORSALE.UA. Всі права захищені. · <a href="mailto:carforsaleua@gmail.com" data-href="link.email" data-k="link.email">carforsaleua@gmail.com</a></span><span>Працюємо по всій Україні 🇺🇦</span>
@@ -372,8 +413,11 @@ let CARS=[
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $=id=>document.getElementById(id),rail=$('rail'),lb=$('lb');let cur=0;
 const draw=()=>{rail.innerHTML=CARS.map((c,k)=>`<button class="car" data-k="${k}" aria-label="${esc(c.n)}, ${esc(c.p)}, ${esc(c.c)}"><img src="${esc(c.img)}" alt="${esc(c.n)}" ${k>2?'loading="lazy"':''}></button>`).join('')};draw();
+let PL={};
 function fmtD(t){if(!t)return'';t=String(t).replace(/\s*(?:✅|✔️|☑️)/g,m=>'\n'+m.trim()).replace(/\s*(?:✨|📝)/g,m=>'\n\n'+m.trim()).replace(/^\n+/,'');return t.split('\n').map(l=>{l=l.trim();const h=l.match(/^((?:✨|📝)[^:]*:)\s*(.+)$/);if(h)return`<div class="h">${esc(h[1])}</div><div>${esc(h[2])}</div>`;return l?`<div${/^(✨|📝)/.test(l)?' class="h"':''}>${esc(l)}</div>`:'<div class="sp"></div>'}).join('')}
-function show(k){cur=(k+CARS.length)%CARS.length;const c=CARS[cur];$('li').src=c.img;$('li').alt=c.n;$('lt').textContent=`${c.n} · ${c.p}`;$('ls').textContent=`Продаж у м. ${c.c}`;$('ld').innerHTML=fmtD(c.d);$('lc').href='tel:'+c.t;$('lc').textContent='Зателефонувати '+c.o}
+function show(k){cur=(k+CARS.length)%CARS.length;const c=CARS[cur];$('li').src=c.img;$('li').alt=c.n;$('lt').textContent=`${c.n} · ${c.p}`;$('ls').textContent=`Продаж у м. ${c.c}`;$('ld').innerHTML=fmtD(c.d);
+ const pl=(c.id&&PL[c.id])||[];$('lh').hidden=!pl.length;$('lh').classList.remove('on');$('lh').textContent=`Де розміщено (${pl.length})`;$('lpart').hidden=true;
+ $('lpart').innerHTML=pl.map(p=>`<a class="lp"${okU(p.link)?` href="${esc(p.link)}" target="_blank" rel="noopener"`:''}>${p.logo?`<img src="${esc(p.logo)}" alt="" loading="lazy">`:'<i></i>'}<span><b>${esc(p.name)}</b>${p.followers?`<small>${esc(p.followers)}</small>`:''}</span></a>`).join('');$('lc').href='tel:'+c.t;$('lc').textContent='Зателефонувати '+c.o}
 rail.onclick=e=>{const b=e.target.closest('.car');if(b){show(+b.dataset.k);lb.showModal()}};
 $('cx').onclick=()=>lb.close();$('lp').onclick=()=>show(cur-1);$('ln').onclick=()=>show(cur+1);lb.onclick=e=>{if(e.target===lb)lb.close()};
 let sx=0;lb.addEventListener('touchstart',e=>sx=e.touches[0].clientX);lb.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>50)show(cur+(d<0?1:-1))});
@@ -470,14 +514,34 @@ addEventListener('resize',cfLay);
 setInterval(()=>{if(hov||!vis||RM)return;const c=t.querySelector('.card');if(!c)return;if(t.scrollLeft+t.clientWidth>=t.scrollWidth-6)t.scrollTo({left:0});else t.scrollBy({left:c.offsetWidth+14})},4200)})();
 renderTariffs(TARIFFS);renderStats(STATS);renderCF(APP);ladder();orbs();
 
+/* ===== ПАРТНЕРИ, СТРІЧКА БРЕНДІВ, ІСТОРІЯ РОЗМІЩЕННЯ ===== */
+const okU=u=>/^https?:\/\//i.test(u||'')?u:'';
+let PT=[];const lim=()=>innerWidth<900?4:6;
+const pcIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');pcIO.unobserve(e.target)}}),{threshold:.12});
+function renderPartners(L){PT=L;const sec=$('partners'),g=$('ptGrid'),mb=$('ptMore');sec.hidden=!L.length;if(!L.length)return;
+ g.innerHTML=L.map((p,i)=>`<article class="pc" style="--i:${i%6}"><div class="pc-top"><span class="pc-logo">${p.logo?`<img src="${esc(p.logo)}" alt="" loading="lazy">`:`<b>${esc((p.name||'?').charAt(0))}</b>`}</span><div><h3>${esc(p.name)}</h3>${p.followers?`<span class="pc-f"><b>${esc(p.followers)}</b> підписників</span>`:''}</div></div>${p.description?`<p>${esc(p.description)}</p>`:''}${okU(p.link)?`<a class="btn b2 sm" href="${esc(p.link)}" target="_blank" rel="noopener">Перейти на сторінку ↗</a>`:''}</article>`).join('');
+ g.classList.remove('open');mb.hidden=L.length<=lim();mb.textContent=`Показати всіх партнерів (${L.length})`;
+ g.querySelectorAll('.pc').forEach(c=>RM?c.classList.add('in'):pcIO.observe(c))}
+$('ptMore').onclick=()=>{const g=$('ptGrid'),o=g.classList.toggle('open');$('ptMore').textContent=o?'Згорнути':`Показати всіх партнерів (${g.children.length})`;g.querySelectorAll('.pc').forEach((c,i)=>setTimeout(()=>c.classList.add('in'),i*40))};
+addEventListener('resize',()=>{if(PT.length)$('ptMore').hidden=PT.length<=lim()});
+$('lh').onclick=()=>{const p=$('lpart'),o=p.hidden;p.hidden=!o;$('lh').classList.toggle('on',o);if(o)p.scrollIntoView({behavior:'smooth',block:'nearest'})};
+const BR_DEF=['BMW','Audi','Mercedes-Benz','Toyota','Volkswagen','Lexus','Nissan','Skoda','Honda','Mazda','Hyundai','Kia'].map(n=>({name:n}));
+function renderBrands(L){const sec=$('brands');sec.hidden=!L.length;if(!L.length)return;let R=L.slice();while(R.length<12)R=R.concat(L);
+ $('bmTr').innerHTML=R.concat(R).map(b=>`<span class="bm-i">${b.logo?`<img src="${esc(b.logo)}" alt="${esc(b.name)}" loading="lazy">`:esc(b.name)}</span>`).join('')}
+new IntersectionObserver(([e])=>$('brands').classList.toggle('vis',e.isIntersecting)).observe($('brands'));
+renderBrands(BR_DEF);
+
 /* ===== дані з бази (Supabase). Якщо config.js порожній або база недоступна, лишаються значення вище ===== */
 (()=>{const C=window.CFG;if(!C||!C.url)return;const H={apikey:C.key,Authorization:'Bearer '+C.key},g=t=>fetch(`${C.url}/rest/v1/${t}`,{headers:H}).then(r=>r.ok?r.json():Promise.reject());
-g('cars?select=*&active=eq.true&order=sort.asc,id.desc').then(d=>{CARS=d.map(r=>({n:r.title,p:r.price,c:r.city,t:r.phone,o:r.owner,d:r.description,img:r.image}));draw()}).catch(()=>{});
+g('cars?select=*&active=eq.true&order=sort.asc,id.desc').then(d=>{CARS=d.map(r=>({n:r.title,p:r.price,c:r.city,t:r.phone,o:r.owner,d:r.description,img:r.image,id:r.id}));draw()}).catch(()=>{});
 g('settings?select=key,value').then(d=>{d.forEach(({key,value})=>SET[key]=value);applySet()}).catch(()=>{});
 g('team?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>renderTeam(d.map(r=>({name:r.name,role:r.role||'',desc:r.description||'',photo:r.photo||'',telegram:r.telegram,viber:r.viber,phone:r.phone,whatsapp:r.whatsapp})))).catch(()=>{});
 g('tariffs?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>{if(d.length)renderTariffs(d)}).catch(()=>{});
 g('stat_groups?select=*&active=eq.true&order=sort.asc,id.asc').then(async G=>{const I=await g('stat_items?select=*&active=eq.true&order=sort.asc,id.asc');renderStats(G.map(x=>({title:x.title,subtitle:x.subtitle,proof:x.proof,items:I.filter(i=>i.grp===x.title)})).filter(x=>x.items.length))}).catch(()=>{});
 g('app_screens?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>{if(d.length)renderCF(d.map(r=>({img:r.image,cap:r.caption||''})))}).catch(()=>{});
+g('partners?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>renderPartners(d)).catch(()=>{});
+g('brands?select=*&active=eq.true&order=sort.asc,id.asc').then(d=>renderBrands(d)).catch(()=>{});
+g('car_partners?select=car_id,partner_id').then(async L=>{const P=await g('partners?select=id,name,logo,link,followers&active=eq.true'),m=Object.fromEntries(P.map(p=>[p.id,p]));PL={};L.forEach(x=>{if(m[x.partner_id])(PL[x.car_id]=PL[x.car_id]||[]).push(m[x.partner_id])})}).catch(()=>{});
 g('reviews?select=*&active=eq.true&order=sort.asc,id.desc').then(d=>{if(!d.length)return;document.querySelector('.rv').innerHTML=d.map(r=>`<div class="card"><div class="who"><i>${esc(r.name.charAt(0))}</i>${esc(r.name)}</div><span class="stars">${'★'.repeat(Math.min(5,Math.max(1,r.stars||5)))}</span><p>«${esc(r.text)}»</p></div>`).join('')}).catch(()=>{})})();
 </script>
 </body>
