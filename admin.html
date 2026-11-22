@@ -19,9 +19,11 @@ button{cursor:pointer;border:1px solid var(--ln);background:var(--p);border-radi
 .row{display:flex;gap:12px;align-items:center;background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:10px;margin-bottom:10px;flex-wrap:wrap}
 .row img{width:110px;border-radius:8px}.row .i{flex:1;min-width:150px}.off{opacity:.45}small{color:#999}
 label{font-size:13px;color:#aaa;display:block}.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
-dialog{background:var(--p);color:#eee;border:1px solid var(--red);border-radius:14px;width:min(94vw,520px);max-height:92vh}dialog::backdrop{background:rgba(0,0,0,.8)}
+dialog{background:var(--p);color:#eee;border:1px solid var(--red);border-radius:14px;width:min(94vw,540px);max-height:92vh}dialog::backdrop{background:rgba(0,0,0,.8)}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;border:1px solid var(--ln);padding:10px 18px;border-radius:10px;display:none;z-index:99}
 #login{max-width:360px;margin:12vh auto;padding:16px}.hint{color:#999;font-size:13px}
+.ai-box{border:1px solid rgba(225,29,42,.5);background:#100c0d;border-radius:12px;padding:12px;margin:10px 0 14px}
+.ai-log{font-size:12.5px;color:#bbb;margin-top:8px;white-space:pre-line}
 @media(max-width:600px){.g2{grid-template-columns:1fr}.row img{width:84px}}
 </style>
 </head>
@@ -41,6 +43,7 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>(
 if(!CFG.url||!CFG.key){document.body.innerHTML='<p style="padding:30px">Спочатку заповніть <b>config.js</b> (Project URL і anon key з Supabase).</p>'}
 const sb=supabase.createClient(CFG.url||'https://x.supabase.co',CFG.key||'x');
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3500)};
+const GEMINI_KEY_STORAGE='cfs_gemini_api_key';
 
 /* --- фото: стиснення й завантаження --- */
 async function upload(file,pre=''){const bmp=await createImageBitmap(file),w=Math.min(1280,bmp.width),h=Math.round(bmp.height*w/bmp.width),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(bmp,0,0,w,h);
@@ -52,6 +55,61 @@ async function upload(file,pre=''){const bmp=await createImageBitmap(file),w=Mat
 /* --- поля форм --- */
 const fld=([k,l,t],v)=>{const x=v?.[k]??(t==='check'?true:'');return t==='check'?`<label><input type="checkbox" name="${k}" ${x?'checked':''} style="width:auto;margin:0 6px 12px 0">${l}</label>`:t==='textarea'?`<label>${l}<textarea name="${k}" rows="3">${esc(x)}</textarea></label>`:`<label>${l}<input name="${k}" type="${t||'text'}" value="${esc(x)}"></label>`};
 const read=(f,fs)=>{const o={};fs.forEach(([k,,t])=>{const e=f.elements[k];o[k]=t==='check'?e.checked:t==='number'?+e.value||0:e.value.trim()});return o};
+
+/* --- виклик Gemini API для зіставлення постів із партнерами --- */
+async function matchPostsWithGemini(apiKey, partners, inspectedItems){
+ const prompt=`Ти допомагаєш зіставити посилання на опубліковані пости авто з партнерами зі списку.
+Назви груп/партнерів можуть трохи відрізнятися від назви у списку партнерів (скорочення, емодзі, регістр, зайві слова).
+Використовуй title, final_url, group_url та avatar_url кожного перевіреного поста, щоб знайти найкращого партнера з масиву partners.
+Якщо для поста немає надійного збігу серед partners — пропусти його (не вигадуй partner_id).
+Поверни ТІЛЬКИ валідний JSON-масив без markdown-блоків у форматі:
+[{"partner_id": 12, "post_url": "https://..."}]
+
+Партнери:
+${JSON.stringify(partners)}
+
+Перевірені пости:
+${JSON.stringify(inspectedItems)}`;
+
+ const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+   contents:[{parts:[{text:prompt}]}],
+   generationConfig:{temperature:0.1}
+  })
+ });
+ const data=await res.json();
+ if(!res.ok)throw Error(data.error?.message||'Помилка Gemini API');
+ const rawText=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
+ const cleaned=rawText.replace(/^```(?:json)?\s*/i,'').replace(/```$/i,'').trim();
+ const parsed=JSON.parse(cleaned);
+ return Array.isArray(parsed)?parsed:[];
+}
+
+/* --- запит до Safari Extension (якщо встановлене) --- */
+function inspectUrlsViaExtension(urls){
+ return new Promise((resolve,reject)=>{
+  const reqId='cfs_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  let done=false;
+  const timer=setTimeout(()=>{
+   if(done)return;
+   done=true;
+   window.removeEventListener('message',onMsg);
+   reject(Error('Розширення Safari не відповіло. Перевір, що розширення увімкнене в Safari та перезавантаж сторінку.'));
+  },45000);
+  const onMsg=ev=>{
+   if(ev.source!==window||!ev.data||ev.data.source!=='CFS_EXT_RES'||ev.data.reqId!==reqId)return;
+   done=true;
+   clearTimeout(timer);
+   window.removeEventListener('message',onMsg);
+   if(ev.data.error)reject(Error(ev.data.error));
+   else resolve(ev.data.items||[]);
+  };
+  window.addEventListener('message',onMsg);
+  window.postMessage({source:'CFS_ADMIN',action:'INSPECT_URLS',reqId,urls},'*');
+ });
+}
 
 /* --- універсальний список: авто / відгуки --- */
 function crud(box,table,fields,o){const ic=o.ic||'image';
@@ -65,11 +123,54 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
  const edit=async(r={})=>{const d=document.createElement('dialog');
   d.innerHTML=`<form>${o.img?`<label>${o.imgl||'Банер (фото-реклама авто)'}<input type="file" name="file" accept="image/*"></label>${r[ic]?`<img src="${esc(r[ic])}" style="width:220px;border-radius:8px;display:block;margin:0 0 12px">`:''}`:''}${fields.map(f=>fld(f,r)).join('')}<div id="lk"></div><button class="pr">Зберегти</button> <button type="button" id="x">Скасувати</button></form>`;
   document.body.append(d);d.showModal();const close=()=>{d.close();d.remove()};d.querySelector('#x').onclick=close;
-  if(o.links){const L=o.links,[po,pc]=await Promise.all([sb.from(L.src).select('id,name,followers,logo').order('sort').order('name'),r.id?sb.from(L.table).select(`${L.other},post_url`).eq(L.fk,r.id):Promise.resolve({data:[]})]);const map=new Map((pc.data||[]).map(x=>[String(x[L.other]),x.post_url||'']));
-   d.querySelector('#lk').innerHTML=`<h3 style="margin-top:6px">Де розміщено (історія)</h3><input id="lks" placeholder="Пошук партнера…"><div class="row" style="padding:6px;gap:8px"><button type="button" id="lka">Обрати всіх</button><button type="button" id="lkn">Очистити</button><small id="lkc"></small></div><div id="lkl" style="max-height:240px;overflow:auto;border:1px solid var(--ln);border-radius:10px;padding:8px;margin-bottom:12px">${(po.data||[]).map(p=>{const checked=map.has(String(p.id));const purl=map.get(String(p.id))||'';const avatar=p.logo?`<img src="${esc(p.logo)}" alt="" loading="lazy" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none;background:#222">`:`<span style="width:28px;height:28px;border-radius:50%;background:#222;border:1px solid var(--ln);display:inline-grid;place-items:center;font-size:12px;font-weight:700;flex:none">${esc((p.name||'?').charAt(0))}</span>`;return `<div style="padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.06)" data-n="${esc(p.name.toLowerCase())}"><label style="display:flex;gap:8px;align-items:center;color:#ddd;font-size:14px;margin:0"><input type="checkbox" class="pchk" value="${p.id}" ${checked?'checked':''} style="width:auto;margin:0">${avatar}<span>${esc(p.name)}${p.followers?` <small>· ${esc(p.followers)}</small>`:''}</span></label><input type="url" class="purl" data-pid="${p.id}" placeholder="Посилання на пост у цього партнера (необов'язково, https://…)" value="${esc(purl)}" style="margin:6px 0 2px 22px;width:calc(100% - 22px);padding:7px 10px;font-size:13px"></div>`}).join('')||'<small>Партнерів ще немає: додайте їх у вкладці «Партнери»</small>'}</div>`;
+  if(o.links){const L=o.links,[po,pc]=await Promise.all([sb.from(L.src).select('id,name,followers,logo,link').order('sort').order('name'),r.id?sb.from(L.table).select(`${L.other},post_url`).eq(L.fk,r.id):Promise.resolve({data:[]})]);const partnersList=po.data||[];const map=new Map((pc.data||[]).map(x=>[String(x[L.other]),x.post_url||'']));
+   d.querySelector('#lk').innerHTML=`<h3 style="margin-top:6px">Де розміщено (історія)</h3>
+   <div class="ai-box">
+    <label>Gemini API ключ (зберігається лише у твоєму браузері)<input type="password" id="aiKey" placeholder="AIza..." value="${esc(localStorage.getItem(GEMINI_KEY_STORAGE)||'')}"></label>
+    <label>Встав сюди всі посилання на пости (по одному або текстом — розширення Safari перевірить їх і AI розставить по партнерах)<textarea id="aiUrls" rows="4" placeholder="https://www.facebook.com/share/r/...&#10;https://www.facebook.com/share/p/..."></textarea></label>
+    <button type="button" class="pr" id="aiRun">✨ Перевірити через Safari та розподілити через AI</button>
+    <div class="ai-log" id="aiLog"></div>
+   </div>
+   <input id="lks" placeholder="Пошук партнера…"><div class="row" style="padding:6px;gap:8px"><button type="button" id="lka">Обрати всіх</button><button type="button" id="lkn">Очистити</button><small id="lkc"></small></div><div id="lkl" style="max-height:240px;overflow:auto;border:1px solid var(--ln);border-radius:10px;padding:8px;margin-bottom:12px">${partnersList.map(p=>{const checked=map.has(String(p.id));const purl=map.get(String(p.id))||'';const avatar=p.logo?`<img src="${esc(p.logo)}" alt="" loading="lazy" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none;background:#222">`:`<span style="width:28px;height:28px;border-radius:50%;background:#222;border:1px solid var(--ln);display:inline-grid;place-items:center;font-size:12px;font-weight:700;flex:none">${esc((p.name||'?').charAt(0))}</span>`;return `<div style="padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.06)" data-n="${esc(p.name.toLowerCase())}"><label style="display:flex;gap:8px;align-items:center;color:#ddd;font-size:14px;margin:0"><input type="checkbox" class="pchk" value="${p.id}" ${checked?'checked':''} style="width:auto;margin:0">${avatar}<span>${esc(p.name)}${p.followers?` <small>· ${esc(p.followers)}</small>`:''}</span></label><input type="url" class="purl" data-pid="${p.id}" placeholder="Посилання на пост у цього партнера (необов'язково, https://…)" value="${esc(purl)}" style="margin:6px 0 2px 22px;width:calc(100% - 22px);padding:7px 10px;font-size:13px"></div>`}).join('')||'<small>Партнерів ще немає: додайте їх у вкладці «Партнери»</small>'}</div>`;
    const cnt=()=>d.querySelector('#lkc').textContent='Обрано: '+d.querySelectorAll('#lkl .pchk:checked').length;cnt();
    d.querySelector('#lkl').onchange=cnt;d.querySelector('#lka').onclick=()=>{d.querySelectorAll('#lkl > div:not([hidden]) .pchk').forEach(i=>i.checked=true);cnt()};d.querySelector('#lkn').onclick=()=>{d.querySelectorAll('#lkl .pchk').forEach(i=>i.checked=false);cnt()};
-   d.querySelector('#lks').oninput=e=>{const q=e.target.value.toLowerCase();d.querySelectorAll('#lkl > div').forEach(row=>row.hidden=!row.dataset.n.includes(q))}}
+   d.querySelector('#lks').oninput=e=>{const q=e.target.value.toLowerCase();d.querySelectorAll('#lkl > div').forEach(row=>row.hidden=!row.dataset.n.includes(q))};
+   d.querySelector('#aiRun').onclick=async()=>{
+    const keyInp=d.querySelector('#aiKey'),urlsInp=d.querySelector('#aiUrls'),runBtn=d.querySelector('#aiRun'),logEl=d.querySelector('#aiLog');
+    const apiKey=keyInp.value.trim();
+    if(!apiKey)return toast('Вкажи Gemini API ключ');
+    localStorage.setItem(GEMINI_KEY_STORAGE,apiKey);
+    const urls=[...new Set((urlsInp.value.match(/https?:\/\/[^\s"'<>]+/gi)||[]).map(u=>u.replace(/[),.;]+$/,'')))];
+    if(!urls.length)return toast('Встав хоча б одне посилання https://...');
+    runBtn.disabled=true;
+    logEl.textContent=`Перевіряю ${urls.length} посилань через розширення Safari…`;
+    try{
+     const inspected=await inspectUrlsViaExtension(urls);
+     logEl.textContent=`Отримано дані по ${inspected.length} посиланнях. Зіставляю через Gemini…`;
+     const matches=await matchPostsWithGemini(apiKey,partnersList.map(p=>({id:p.id,name:p.name,link:p.link||'',followers:p.followers||''})),inspected);
+     let applied=0;
+     for(const m of matches){
+      const pid=String(m.partner_id||'');
+      const purl=String(m.post_url||'').trim();
+      const chk=d.querySelector(`#lkl .pchk[value="${CSS.escape(pid)}"]`);
+      const inp=d.querySelector(`#lkl .purl[data-pid="${CSS.escape(pid)}"]`);
+      if(chk&&purl){
+       chk.checked=true;
+       if(inp)inp.value=purl;
+       applied++;
+      }
+     }
+     cnt();
+     logEl.textContent=`Готово: розпізнано й підставлено ${applied} із ${urls.length} посилань. Перевір список і натисни «Зберегти».`;
+     toast(`Розподілено посилань: ${applied} ✓`);
+    }catch(err){
+     logEl.textContent='Помилка: '+(err.message||err);
+     toast(err.message||'Помилка AI-розподілу');
+    }finally{
+     runBtn.disabled=false;
+    }
+   };
+  }
   d.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.target,b=f.querySelector('.pr');b.disabled=true;
    try{const v=read(f,fields);if(o.img){const file=f.elements.file.files[0];if(file)v[ic]=await upload(file,o.pre);else if(!r[ic]&&!o.opt)throw Error('Додайте фото');}
     let id=r.id,error;if(id){({error}=await sb.from(table).update(v).eq('id',id))}else{const q=await sb.from(table).insert(v).select('id').single();error=q.error;id=q.data&&q.data.id}if(error)throw error;
