@@ -81,7 +81,7 @@ function inspectUrlsViaExtension(urls){
  });
 }
 
-/* --- чітке локальне зіставлення за редагованою назвою, підписниками та посиланням --- */
+/* --- зіставлення: один партнер = один пост, без дублювання галочок --- */
 function cleanPartnerName(s){
  return String(s||'')
   .toLowerCase()
@@ -138,6 +138,10 @@ function matchPostsStrictly(partners, inspectedItems, inputUrls=[]){
  const matches=[];
  const unmatched=[];
  const seenUrls=new Set();
+ const usedPartners=new Set();
+
+ // Будуємо пари (postUrl, candidatePartner, score) і розставляємо по найкращому збігу без дублювання партнера
+ const scoredPairs=[];
 
  for(const item of inspectedItems){
   const postUrl=String(item?.post_url||'').trim();
@@ -150,8 +154,6 @@ function matchPostsStrictly(partners, inspectedItems, inputUrls=[]){
   const normText=cleanPartnerName(rawText);
   const pageNums=extractPageNumbers(rawText);
 
-  // Збираємо всі можливі назви/фрагменти назви кожного партнера (повна назва та частини через "/")
-  const candidates=[];
   for(const p of partners){
    const fullClean=cleanPartnerName(p?.name||'');
    const pLink=String(p?.link||'').trim().toLowerCase();
@@ -159,66 +161,75 @@ function matchPostsStrictly(partners, inspectedItems, inputUrls=[]){
 
    const nameVariants=new Set();
    if(fullClean)nameVariants.add(fullClean);
-   for(const part of String(p?.name||'').split('/').map(s=>cleanPartnerName(s)).filter(s=>s.length>=4)){
+   for(const part of String(p?.name||'').split('/').map(s=>cleanPartnerName(s)).filter(s=>s.length>=5)){
     nameVariants.add(part);
    }
 
    let nameScore=0;
-   let matchedExactOrStrong=false;
+   let hasMatch=false;
 
    if(pLink && lowerText.includes(pLink)){
     nameScore=120;
-    matchedExactOrStrong=true;
+    hasMatch=true;
    }
 
    for(const v of nameVariants){
     if(normText.includes(v)){
-     // Чим довший точний фрагмент назви збігся — тим вищий пріоритет
      const s=70+Math.min(40,v.length);
      if(s>nameScore)nameScore=s;
-     matchedExactOrStrong=true;
+     hasMatch=true;
     }
    }
 
-   // Якщо жоден варіант не увійшов цілком — перевіряємо збіг усіх значущих слів назви (>=3 літери)
-   if(!matchedExactOrStrong && fullClean){
+   if(!hasMatch && fullClean){
     const words=fullClean.split(' ').filter(w=>w.length>=3);
     if(words.length>=2){
      const hits=words.filter(w=>normText.includes(w)).length;
      if(hits===words.length){
       nameScore=55+hits*4;
-      matchedExactOrStrong=true;
+      hasMatch=true;
      }
     }
    }
 
-   if(!matchedExactOrStrong)continue;
+   if(!hasMatch)continue;
 
-   // Додатковий бал за близькість кількості підписників (±15%)
    let subsBonus=0;
    if(pSubs && pageNums.length){
     const close=pageNums.some(n=>Math.abs(n-pSubs)/pSubs<=0.15);
     if(close)subsBonus=25;
    }
 
-   candidates.push({
+   scoredPairs.push({
+    postUrl,
     partner:p,
-    totalScore:nameScore+subsBonus
+    score:nameScore+subsBonus
    });
   }
+ }
 
-  candidates.sort((a,b)=>b.totalScore-a.totalScore);
+ scoredPairs.sort((a,b)=>b.score-a.score);
 
-  if(candidates.length>0){
-   matches.push({
-    partner_id:candidates[0].partner.id,
-    partner_name:candidates[0].partner.name,
-    post_url:postUrl
-   });
-  }else{
+ const assignedUrls=new Set();
+ for(const pair of scoredPairs){
+  if(assignedUrls.has(pair.postUrl))continue;
+  if(usedPartners.has(String(pair.partner.id)))continue;
+  assignedUrls.add(pair.postUrl);
+  usedPartners.add(String(pair.partner.id));
+  matches.push({
+   partner_id:pair.partner.id,
+   partner_name:pair.partner.name,
+   post_url:pair.postUrl
+  });
+ }
+
+ for(const item of inspectedItems){
+  const postUrl=String(item?.post_url||'').trim();
+  if(!postUrl)continue;
+  if(!assignedUrls.has(postUrl)){
    unmatched.push({
     post_url:postUrl,
-    info:cleanPartnerName(item?.title||item?.final_url||'').slice(0,90)
+    info:cleanPartnerName(item?.title||item?.final_url||'не збіглося з жодним партнером').slice(0,90)
    });
   }
  }
@@ -353,6 +364,7 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
      const inspected=await inspectUrlsViaExtension(urls);
      const {matches,unmatched}=matchPostsStrictly(partnersList,inspected,urls);
      let applied=0;
+     const appliedLines=[];
      const failedItems=[...unmatched];
      for(const m of matches){
       const pid=String(m.partner_id||'');
@@ -363,6 +375,7 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
        chk.checked=true;
        if(inp)inp.value=purl;
        applied++;
+       appliedLines.push(`✓ ${m.partner_name} ← ${purl}`);
       }else{
        failedItems.push({post_url:purl,info:m.partner_name||'не вдалося вставити галочку'});
       }
@@ -371,8 +384,7 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
      if(failedItems.length){
       unmatchedEl.innerHTML=failedItems.map(u=>`<div class="unmatched-item">Не поставилось галочкою (не збережеться): <b>${esc(u.post_url)}</b>${u.info?` <small style="color:#ff9aa2">[${esc(u.info)}]</small>`:''}</div>`).join('');
      }
-     const matchedLines=matches.map(m=>`✓ ${m.partner_name} ← ${m.post_url}`).join('\n');
-     logEl.textContent=`Проставлено галочок: ${applied} із ${urls.length}.${failedItems.length?` Не пройшло: ${failedItems.length} (підсвічено червоним).`:''}${matchedLines?`\n${matchedLines}`:''}`;
+     logEl.textContent=`Проставлено галочок: ${applied} із ${urls.length}.${failedItems.length?` Не пройшло: ${failedItems.length} (підсвічено червоним).`:''}${appliedLines.length?`\n${appliedLines.join('\n')}`:''}`;
      toast(`Галочок проставлено: ${applied} із ${urls.length}`);
     }catch(err){
      logEl.textContent='Помилка: '+(err.message||err);
