@@ -19,11 +19,14 @@ button{cursor:pointer;border:1px solid var(--ln);background:var(--p);border-radi
 .row{display:flex;gap:12px;align-items:center;background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:10px;margin-bottom:10px;flex-wrap:wrap}
 .row img{width:110px;border-radius:8px}.row .i{flex:1;min-width:150px}.off{opacity:.45}small{color:#999}
 label{font-size:13px;color:#aaa;display:block}.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
-dialog{background:var(--p);color:#eee;border:1px solid var(--red);border-radius:14px;width:min(94vw,540px);max-height:92vh}dialog::backdrop{background:rgba(0,0,0,.8)}
+dialog{background:var(--p);color:#eee;border:1px solid var(--red);border-radius:14px;width:min(94vw,580px);max-height:92vh}dialog::backdrop{background:rgba(0,0,0,.8)}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;border:1px solid var(--ln);padding:10px 18px;border-radius:10px;display:none;z-index:99}
 #login{max-width:360px;margin:12vh auto;padding:16px}.hint{color:#999;font-size:13px}
 .ai-box{border:1px solid rgba(225,29,42,.5);background:#100c0d;border-radius:12px;padding:12px;margin:10px 0 14px}
 .ai-log{font-size:12.5px;color:#bbb;margin-top:8px;white-space:pre-line}
+.ai-mini-btn{padding:6px 10px;font-size:12.5px;margin-bottom:6px;background:#1e1315;border-color:rgba(225,29,42,.55)}
+.unmatched-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.unmatched-item{border:1px solid #ff4d5a;background:rgba(225,29,42,.16);color:#ffb3b8;border-radius:8px;padding:7px 10px;font-size:12px;word-break:break-all}
 @media(max-width:600px){.g2{grid-template-columns:1fr}.row img{width:84px}}
 </style>
 </head>
@@ -54,60 +57,46 @@ async function upload(file,pre=''){const bmp=await createImageBitmap(file),w=Mat
 
 /* --- поля форм --- */
 const fld=([k,l,t],v)=>{const x=v?.[k]??(t==='check'?true:'');return t==='check'?`<label><input type="checkbox" name="${k}" ${x?'checked':''} style="width:auto;margin:0 6px 12px 0">${l}</label>`:t==='textarea'?`<label>${l}<textarea name="${k}" rows="3">${esc(x)}</textarea></label>`:`<label>${l}<input name="${k}" type="${t||'text'}" value="${esc(x)}"></label>`};
-const read=(f,fs)=>{const o={};fs.forEach(([k,,t])=>{const e=f.elements[k];o[k]=t==='check'?e.checked:t==='number'?+e.value||0:e.value.trim()});return o};
+const read=(f,fs)=>{const o={};fs.forEach(([k,,t])=>{const e=f.elements[k];if(!e)return;o[k]=t==='check'?e.checked:t==='number'?+e.value||0:e.value.trim()});return o};
 
-/* --- виклик Gemini API для зіставлення постів із партнерами (безкоштовні моделі) --- */
-async function matchPostsWithGemini(apiKey, partners, inspectedItems){
- const prompt=`Ти допомагаєш зіставити посилання на опубліковані пости авто з партнерами зі списку.
-Назви груп/партнерів можуть трохи відрізнятися від назви у списку партнерів (скорочення, емодзі, регістр, зайві слова).
-Використовуй title, final_url, group_url та avatar_url кожного перевіреного поста, щоб знайти найкращого партнера з масиву partners.
-Якщо для поста немає надійного збігу серед partners — пропусти його (не вигадуй partner_id).
-Поверни ТІЛЬКИ валідний JSON-масив без markdown-блоків у форматі:
-[{"partner_id": 12, "post_url": "https://..."}]
+/* --- Gemini асистент для створення описів (безкоштовні моделі) --- */
+async function generateDescriptionWithGemini(promptText, explicitKey=''){
+ let apiKey=(explicitKey||localStorage.getItem(GEMINI_KEY_STORAGE)||'').trim();
+ if(!apiKey){
+  const entered=window.prompt('Введи Gemini API ключ (збережеться в браузері для генерації описів):','');
+  if(!entered||!entered.trim())throw Error('Ключ Gemini не вказано');
+  apiKey=entered.trim();
+  localStorage.setItem(GEMINI_KEY_STORAGE,apiKey);
+ }else{
+  localStorage.setItem(GEMINI_KEY_STORAGE,apiKey);
+ }
 
-Партнери:
-${JSON.stringify(partners)}
-
-Перевірені пости:
-${JSON.stringify(inspectedItems)}`;
-
- const freeModels=[
-  'gemini-flash-latest',
-  'gemini-flash-lite-latest',
-  'gemini-3.5-flash-lite',
-  'gemini-4-hydrogen'
- ];
+ const freeModels=['gemini-3.5-flash-lite','gemini-flash-lite-latest','gemini-flash-latest','gemini-4-hydrogen'];
  let lastErr='Помилка Gemini API';
-
  for(const model of freeModels){
-  for(let attempt=0;attempt<2;attempt++){
+  try{
    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-     contents:[{parts:[{text:prompt}]}],
-     generationConfig:{temperature:0.1}
+     contents:[{parts:[{text:promptText}]}],
+     generationConfig:{temperature:0.4,maxOutputTokens:400,thinkingConfig:{thinkingBudget:0}}
     })
    });
    const data=await res.json();
    if(res.ok){
-    const rawText=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
-    const cleaned=rawText.replace(/^```(?:json)?\s*/i,'').replace(/```$/i,'').trim();
-    const parsed=JSON.parse(cleaned);
-    return Array.isArray(parsed)?parsed:[];
+    const text=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();
+    if(text)return text;
    }
    lastErr=data.error?.message||lastErr;
-   if(res.status===503||res.status===429){
-    await new Promise(r=>setTimeout(r,1500));
-   }else{
-    break;
-   }
+  }catch(e){
+   lastErr=e.message||String(e);
   }
  }
  throw Error(lastErr);
 }
 
-/* --- запит до Safari Extension (якщо встановлене) --- */
+/* --- запит до Safari Extension --- */
 function inspectUrlsViaExtension(urls){
  return new Promise((resolve,reject)=>{
   const reqId='cfs_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
@@ -131,7 +120,197 @@ function inspectUrlsViaExtension(urls){
  });
 }
 
-/* --- універсальний список: авто / відгуки --- */
+/* --- розумне локальне зіставлення: ± назва + ± підписники + посилання --- */
+function normalizeText(s){
+ return String(s||'')
+  .toLowerCase()
+  .replace(/[^\p{L}\p{N}\s/.-]+/gu,' ')
+  .replace(/\s+/g,' ')
+  .trim();
+}
+
+function parseFollowersCount(raw){
+ const s=String(raw||'').toLowerCase().replace(/\s+/g,'');
+ if(!s)return null;
+ const m=s.match(/(\d+(?:[.,]\d+)?)\s*(тис|к|k|млн|m)?/i);
+ if(!m)return null;
+ let num=parseFloat(m[1].replace(',','.'));
+ if(Number.isNaN(num))return null;
+ const unit=(m[2]||'').toLowerCase();
+ if(unit==='тис'||unit==='к'||unit==='k')num*=1000;
+ if(unit==='млн'||unit==='m')num*=1000000;
+ return num;
+}
+
+function extractNumbersFromText(text){
+ const out=[];
+ const regex=/(\d+(?:[.,]\d+)?)\s*(тис\.?|к|k|млн|m|підписників|followers)?/gi;
+ let match;
+ while((match=regex.exec(String(text||'')))!==null){
+  let val=parseFloat(match[1].replace(',','.'));
+  if(Number.isNaN(val))continue;
+  const u=(match[2]||'').toLowerCase();
+  if(u.startsWith('тис')||u==='к'||u==='k')val*=1000;
+  if(u.startsWith('млн')||u==='m')val*=1000000;
+  if(val>=500)out.push(val);
+ }
+ return out;
+}
+
+function levenshteinSimilarity(a,b){
+ if(!a||!b)return 0;
+ if(a===b)return 1;
+ const m=a.length,n=b.length;
+ if(Math.abs(m-n)>Math.max(m,n)*0.6)return 0;
+ const dp=Array.from({length:m+1},(_,i)=>[i]);
+ for(let j=1;j<=n;j++)dp[0][j]=j;
+ for(let i=1;i<=m;i++){
+  for(let j=1;j<=n;j++){
+   const cost=a[i-1]===b[j-1]?0:1;
+   dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+cost);
+  }
+ }
+ return 1-dp[m][n]/Math.max(m,n);
+}
+
+function matchPostsLocally(partners, inspectedItems){
+ const matches=[];
+ const unmatched=[];
+
+ for(const item of inspectedItems){
+  const postUrl=String(item?.post_url||'').trim();
+  if(!postUrl)continue;
+
+  const rawParts=[
+   item?.title||'',
+   item?.final_url||'',
+   ...(Array.isArray(item?.group_links)?item.group_links.map(g=>`${g?.text||''} ${g?.href||''}`):[])
+  ];
+  const combinedRaw=rawParts.join(' | ');
+  const combinedLower=combinedRaw.toLowerCase();
+  const combinedNorm=normalizeText(combinedRaw);
+  const tokens=combinedNorm.split(' ').filter(t=>t.length>=2);
+  const pageNumbers=extractNumbersFromText(combinedRaw);
+
+  let bestPartner=null;
+  let bestScore=0;
+
+  for(const p of partners){
+   let score=0;
+   const pLink=String(p?.link||'').trim().toLowerCase();
+   const pNameNorm=normalizeText(p?.name||'');
+   const pFollowers=parseFollowersCount(p?.followers||'');
+
+   // 1. Пряме збігання посилання сторінки/групи
+   if(pLink && combinedLower.includes(pLink)){
+    score+=90;
+   }
+
+   // 2. ± збіг назви (включення, збіг слів, нечітка схожість при опечатках/регістрі)
+   if(pNameNorm){
+    if(combinedNorm.includes(pNameNorm)){
+     score+=55;
+    }else{
+     const pWords=pNameNorm.split(' ').filter(w=>w.length>=2);
+     if(pWords.length){
+      let wordHits=0;
+      for(const pw of pWords){
+       if(combinedNorm.includes(pw)){
+        wordHits+=1;
+       }else{
+        const bestSim=Math.max(0,...tokens.map(tk=>levenshteinSimilarity(pw,tk)));
+        if(bestSim>=0.72)wordHits+=0.85;
+       }
+      }
+      score+=(wordHits/pWords.length)*50;
+     }
+
+     const candidateChunks=[
+      normalizeText(item?.title||''),
+      ...(Array.isArray(item?.group_links)?item.group_links.map(g=>normalizeText(g?.text||'')):[])
+     ].filter(Boolean);
+     for(const ch of candidateChunks){
+      const sim=levenshteinSimilarity(pNameNorm,ch);
+      if(sim>=0.65)score+=sim*35;
+     }
+    }
+   }
+
+   // 3. ± збіг підписників (допуск ±25%)
+   if(pFollowers && pageNumbers.length){
+    const closeNum=pageNumbers.some(n=>Math.abs(n-pFollowers)/pFollowers<=0.25);
+    if(closeNum)score+=30;
+   }
+
+   if(score>bestScore){
+    bestScore=score;
+    bestPartner=p;
+   }
+  }
+
+  if(bestPartner && bestScore>=35){
+   matches.push({partner_id:bestPartner.id,post_url:postUrl,score:Math.round(bestScore)});
+  }else{
+   unmatched.push({post_url:postUrl,title:item?.title||''});
+  }
+ }
+
+ return {matches,unmatched};
+}
+
+/* --- парсинг і збірка лише заповнених полів авто у description --- */
+const CAR_SPEC_LABELS=[
+ ['year','Рік'],
+ ['mileage','Пробіг'],
+ ['city','Розташування'],
+ ['engine','Двигун'],
+ ['gearbox','Коробка передач'],
+ ['drive','Привід'],
+ ['color','Колір'],
+ ['vin','VIN']
+];
+
+function parseCarFields(r={}){
+ const desc=String(r.description||'');
+ const pick=(label)=>{
+  const m=desc.match(new RegExp(`^${label}\\s*:\\s*(.+)$`,'mi'));
+  return m?m[1].trim():'';
+ };
+ const labelPattern=new RegExp(`^(${CAR_SPEC_LABELS.map(([,lbl])=>lbl).join('|')})\\s*:`,'i');
+ const freeLines=desc
+  .split('\n')
+  .map(l=>l.trim())
+  .filter(l=>l && !labelPattern.test(l));
+
+ return {
+  year:pick('Рік'),
+  mileage:pick('Пробіг'),
+  location:pick('Розташування')||r.city||'',
+  engine:pick('Двигун'),
+  gearbox:pick('Коробка передач'),
+  drive:pick('Привід'),
+  color:pick('Колір'),
+  vin:pick('VIN'),
+  freeDesc:freeLines.join('\n')
+ };
+}
+
+function buildCarDescriptionFromForm(f){
+ const lines=[];
+ for(const [fieldName,label] of CAR_SPEC_LABELS){
+  const val=(f.elements[fieldName]?.value||'').trim();
+  if(val){
+   lines.push(`${label}:${val}`);
+  }
+ }
+ const extra=(f.elements.description?.value||'').trim();
+ if(extra){
+  lines.push(extra);
+ }
+ return lines.join('\n');
+}
+
+/* --- універсальний список: авто / партнери / відгуки --- */
 function crud(box,table,fields,o){const ic=o.ic||'image';
  const load=async()=>{const{data,error}=await sb.from(table).select('*').order('sort').order('id',{ascending:false});if(error)return toast(error.message);
   box.innerHTML=`<button class="pr" id="add">＋ ${o.add}</button><p class="hint">«Порядок»: менше число = вище в списку. «Сховати» прибирає зі сайту, але не видаляє.</p>`+data.map(r=>`<div class="row ${r.active?'':'off'}" data-id="${r.id}">${o.img?(r[ic]?`<img src="${esc(r[ic])}" alt="">`:`<div style="width:110px;height:70px;border:1px dashed #555;border-radius:8px;display:grid;place-items:center;font-size:11px;color:#888;text-align:center">без фото</div>`):''}<div class="i"><b>${esc(r[o.title])}</b><br><small>${esc(o.sub(r))}</small></div><button data-a="t">${r.active?'Сховати':'Показати'}</button><button data-a="e">Змінити</button><button data-a="d">Видалити</button></div>`).join('');
@@ -140,34 +319,141 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
    if(a==='t'){await sb.from(table).update({active:!r.active}).eq('id',r.id);load()}
    if(a==='e')edit(r);
    if(a==='d'&&confirm('Видалити «'+r[o.title]+'»? Запис і фото буде видалено з бази остаточно.')){const{error}=await sb.from(table).delete().eq('id',r.id);if(error){toast(error.message);return}if(r[ic]&&r[ic].includes('/banners/'))await sb.storage.from('banners').remove([r[ic].split('/banners/')[1]]);toast('Видалено ✓');load()}})};
+
  const edit=async(r={})=>{const d=document.createElement('dialog');
-  d.innerHTML=`<form>${o.img?`<label>${o.imgl||'Банер (фото-реклама авто)'}<input type="file" name="file" accept="image/*"></label>${r[ic]?`<img src="${esc(r[ic])}" style="width:220px;border-radius:8px;display:block;margin:0 0 12px">`:''}`:''}${fields.map(f=>fld(f,r)).join('')}<div id="lk"></div><button class="pr">Зберегти</button> <button type="button" id="x">Скасувати</button></form>`;
+  const isCar=table==='cars';
+  const isPartner=table==='partners';
+
+  if(isCar){
+   const pf=parseCarFields(r);
+   d.innerHTML=`<form>
+    <label>${o.imgl||'Банер (фото-реклама авто)'}<input type="file" name="file" accept="image/*"></label>
+    ${r[ic]?`<img src="${esc(r[ic])}" style="width:220px;border-radius:8px;display:block;margin:0 0 12px">`:''}
+    <div class="g2">
+     <label>Назва (напр. Hyundai Santa FE)<input name="title" value="${esc(r.title||'')}" required></label>
+     <label>Рік (напр. 2009)<input name="year" value="${esc(pf.year)}"></label>
+     <label>Ціна (напр. 10750$)<input name="price" value="${esc(r.price||'')}"></label>
+     <label>Пробіг (напр. 233 тис.км.)<input name="mileage" value="${esc(pf.mileage)}"></label>
+     <label>Розташування / Місто (напр. м.Луцьк)<input name="city" value="${esc(pf.location)}"></label>
+     <label>Двигун (напр. 2.2 дизель)<input name="engine" value="${esc(pf.engine)}"></label>
+     <label>Коробка передач (напр. механіка)<input name="gearbox" value="${esc(pf.gearbox)}"></label>
+     <label>Привід (напр. повний)<input name="drive" value="${esc(pf.drive)}"></label>
+     <label>Колір (напр. темний баклажан)<input name="color" value="${esc(pf.color)}"></label>
+     <label>VIN<input name="vin" value="${esc(pf.vin)}"></label>
+     <label>Ім'я власника<input name="owner" value="${esc(r.owner||'')}"></label>
+     <label>Телефон власника (+380...)<input name="phone" value="${esc(r.phone||'')}"></label>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px">
+     <label style="margin:0">Короткий опис (порожні поля не виводяться)</label>
+     <button type="button" class="ai-mini-btn" id="aiGenCarDesc">✨ Згенерувати опис через AI</button>
+    </div>
+    <textarea name="description" rows="3" placeholder="Короткий опис авто або додаткові деталі…">${esc(pf.freeDesc)}</textarea>
+    <div class="g2">
+     <label>Порядок<input name="sort" type="number" value="${esc(r.sort??0)}"></label>
+     <label style="display:flex;align-items:center;margin-top:22px"><input type="checkbox" name="active" ${r.active!==false?'checked':''} style="width:auto;margin:0 6px 0 0">Показувати на сайті</label>
+    </div>
+    <div id="lk"></div>
+    <button class="pr">Зберегти</button> <button type="button" id="x">Скасувати</button>
+   </form>`;
+  }else{
+   d.innerHTML=`<form>${o.img?`<label>${o.imgl||'Банер'}<input type="file" name="file" accept="image/*"></label>${r[ic]?`<img src="${esc(r[ic])}" style="width:220px;border-radius:8px;display:block;margin:0 0 12px">`:''}`:''}${fields.map(f=>fld(f,r)).join('')}<div id="lk"></div><button class="pr">Зберегти</button> <button type="button" id="x">Скасувати</button></form>`;
+  }
+
   document.body.append(d);d.showModal();const close=()=>{d.close();d.remove()};d.querySelector('#x').onclick=close;
+
+  if(isPartner){
+   const descEl=d.querySelector('textarea[name="description"]');
+   if(descEl){
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='ai-mini-btn';
+    btn.textContent='✨ Згенерувати опис партнера через AI';
+    descEl.parentElement.insertBefore(btn,descEl);
+    btn.onclick=async()=>{
+     const formEl=d.querySelector('form');
+     const nameVal=formEl.elements.name?.value?.trim()||'';
+     const subsVal=formEl.elements.followers?.value?.trim()||'';
+     const linkVal=formEl.elements.link?.value?.trim()||'';
+     if(!nameVal)return toast('Спочатку вкажи назву партнера');
+     btn.disabled=true;
+     toast('Генерую опис партнера…');
+     try{
+      const txt=await generateDescriptionWithGemini(
+       `Напиши короткий, живий опис українською (1–2 речення, до 200 символів) для автомобільного партнера/групи CARFORSALE.UA.
+Назва: ${nameVal}
+Підписники: ${subsVal||'не вказано'}
+Посилання: ${linkVal||'не вказано'}
+Без лапок і зайвих вступів.`
+      );
+      descEl.value=txt;
+      toast('Опис згенеровано ✓');
+     }catch(err){
+      toast(err.message||'Помилка генерації');
+     }finally{
+      btn.disabled=false;
+     }
+    };
+   }
+  }
+
+  if(isCar){
+   const aiCarBtn=d.querySelector('#aiGenCarDesc');
+   if(aiCarBtn){
+    aiCarBtn.onclick=async()=>{
+     const fEl=d.querySelector('form');
+     const parts=[
+      `Авто: ${fEl.elements.title?.value||''}`,
+      fEl.elements.year?.value?`Рік: ${fEl.elements.year.value}`:'',
+      fEl.elements.price?.value?`Ціна: ${fEl.elements.price.value}`:'',
+      fEl.elements.mileage?.value?`Пробіг: ${fEl.elements.mileage.value}`:'',
+      fEl.elements.city?.value?`Місто: ${fEl.elements.city.value}`:'',
+      fEl.elements.engine?.value?`Двигун: ${fEl.elements.engine.value}`:'',
+      fEl.elements.gearbox?.value?`КПП: ${fEl.elements.gearbox.value}`:'',
+      fEl.elements.drive?.value?`Привід: ${fEl.elements.drive.value}`:'',
+      fEl.elements.color?.value?`Колір: ${fEl.elements.color.value}`:'',
+      fEl.elements.description?.value?`Нотатки: ${fEl.elements.description.value}`:''
+     ].filter(Boolean).join('\n');
+     if(!fEl.elements.title?.value?.trim())return toast('Спочатку вкажи назву авто');
+     aiCarBtn.disabled=true;
+     toast('Формую опис авто через AI…');
+     try{
+      const gen=await generateDescriptionWithGemini(
+       `Склади короткий, привабливий опис авто українською для оголошення (2–3 речення, без зайвого пафосу та без маркованого списку):
+${parts}`
+      );
+      fEl.elements.description.value=gen;
+      toast('Опис авто згенеровано ✓');
+     }catch(err){
+      toast(err.message||'Помилка AI');
+     }finally{
+      aiCarBtn.disabled=false;
+     }
+    };
+   }
+  }
+
   if(o.links){const L=o.links,[po,pc]=await Promise.all([sb.from(L.src).select('id,name,followers,logo,link').order('sort').order('name'),r.id?sb.from(L.table).select(`${L.other},post_url`).eq(L.fk,r.id):Promise.resolve({data:[]})]);const partnersList=po.data||[];const map=new Map((pc.data||[]).map(x=>[String(x[L.other]),x.post_url||'']));
    d.querySelector('#lk').innerHTML=`<h3 style="margin-top:6px">Де розміщено (історія)</h3>
    <div class="ai-box">
-    <label>Gemini API ключ (зберігається лише у твоєму браузері)<input type="password" id="aiKey" placeholder="AIza..." value="${esc(localStorage.getItem(GEMINI_KEY_STORAGE)||'')}"></label>
-    <label>Встав сюди всі посилання на пости (по одному або текстом — розширення Safari перевірить їх і AI розставить по партнерах)<textarea id="aiUrls" rows="4" placeholder="https://www.facebook.com/share/r/...&#10;https://www.facebook.com/share/p/..."></textarea></label>
-    <button type="button" class="pr" id="aiRun">✨ Перевірити через Safari та розподілити через AI</button>
+    <label>Встав сюди всі посилання на пости (по одному або текстом — розширення Safari перевірить їх і код розставить по партнерах)<textarea id="aiUrls" rows="4" placeholder="https://www.facebook.com/share/r/...&#10;https://www.facebook.com/share/p/..."></textarea></label>
+    <button type="button" class="pr" id="aiRun">⚡ Перевірити через Safari та розподілити</button>
     <div class="ai-log" id="aiLog"></div>
+    <div class="unmatched-list" id="aiUnmatched"></div>
    </div>
    <input id="lks" placeholder="Пошук партнера…"><div class="row" style="padding:6px;gap:8px"><button type="button" id="lka">Обрати всіх</button><button type="button" id="lkn">Очистити</button><small id="lkc"></small></div><div id="lkl" style="max-height:240px;overflow:auto;border:1px solid var(--ln);border-radius:10px;padding:8px;margin-bottom:12px">${partnersList.map(p=>{const checked=map.has(String(p.id));const purl=map.get(String(p.id))||'';const avatar=p.logo?`<img src="${esc(p.logo)}" alt="" loading="lazy" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none;background:#222">`:`<span style="width:28px;height:28px;border-radius:50%;background:#222;border:1px solid var(--ln);display:inline-grid;place-items:center;font-size:12px;font-weight:700;flex:none">${esc((p.name||'?').charAt(0))}</span>`;return `<div style="padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.06)" data-n="${esc(p.name.toLowerCase())}"><label style="display:flex;gap:8px;align-items:center;color:#ddd;font-size:14px;margin:0"><input type="checkbox" class="pchk" value="${p.id}" ${checked?'checked':''} style="width:auto;margin:0">${avatar}<span>${esc(p.name)}${p.followers?` <small>· ${esc(p.followers)}</small>`:''}</span></label><input type="url" class="purl" data-pid="${p.id}" placeholder="Посилання на пост у цього партнера (необов'язково, https://…)" value="${esc(purl)}" style="margin:6px 0 2px 22px;width:calc(100% - 22px);padding:7px 10px;font-size:13px"></div>`}).join('')||'<small>Партнерів ще немає: додайте їх у вкладці «Партнери»</small>'}</div>`;
    const cnt=()=>d.querySelector('#lkc').textContent='Обрано: '+d.querySelectorAll('#lkl .pchk:checked').length;cnt();
    d.querySelector('#lkl').onchange=cnt;d.querySelector('#lka').onclick=()=>{d.querySelectorAll('#lkl > div:not([hidden]) .pchk').forEach(i=>i.checked=true);cnt()};d.querySelector('#lkn').onclick=()=>{d.querySelectorAll('#lkl .pchk').forEach(i=>i.checked=false);cnt()};
    d.querySelector('#lks').oninput=e=>{const q=e.target.value.toLowerCase();d.querySelectorAll('#lkl > div').forEach(row=>row.hidden=!row.dataset.n.includes(q))};
    d.querySelector('#aiRun').onclick=async()=>{
-    const keyInp=d.querySelector('#aiKey'),urlsInp=d.querySelector('#aiUrls'),runBtn=d.querySelector('#aiRun'),logEl=d.querySelector('#aiLog');
-    const apiKey=keyInp.value.trim();
-    if(!apiKey)return toast('Вкажи Gemini API ключ');
-    localStorage.setItem(GEMINI_KEY_STORAGE,apiKey);
+    const urlsInp=d.querySelector('#aiUrls'),runBtn=d.querySelector('#aiRun'),logEl=d.querySelector('#aiLog'),unmatchedEl=d.querySelector('#aiUnmatched');
     const urls=[...new Set((urlsInp.value.match(/https?:\/\/[^\s"'<>]+/gi)||[]).map(u=>u.replace(/[),.;]+$/,'')))];
     if(!urls.length)return toast('Встав хоча б одне посилання https://...');
     runBtn.disabled=true;
+    unmatchedEl.innerHTML='';
     logEl.textContent=`Перевіряю ${urls.length} посилань через розширення Safari…`;
     try{
      const inspected=await inspectUrlsViaExtension(urls);
-     logEl.textContent=`Отримано дані по ${inspected.length} посиланнях. Зіставляю через Gemini…`;
-     const matches=await matchPostsWithGemini(apiKey,partnersList.map(p=>({id:p.id,name:p.name,link:p.link||'',followers:p.followers||''})),inspected);
+     const {matches,unmatched}=matchPostsLocally(partnersList,inspected);
      let applied=0;
      for(const m of matches){
       const pid=String(m.partner_id||'');
@@ -181,18 +467,38 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
       }
      }
      cnt();
-     logEl.textContent=`Готово: розпізнано й підставлено ${applied} із ${urls.length} посилань. Перевір список і натисни «Зберегти».`;
+     if(unmatched.length){
+      unmatchedEl.innerHTML=unmatched.map(u=>`<div class="unmatched-item">Не знайдено партнера — не вставлено та не збережеться: <b>${esc(u.post_url)}</b>${u.title?` <small style="color:#ff9aa2">(${esc(u.title)})</small>`:''}</div>`).join('');
+     }
+     logEl.textContent=`Готово: розставлено ${applied} із ${urls.length} посилань.${unmatched.length?` Червоним підсвічено ${unmatched.length} без збігу — вони нікуди не додані.`:''}`;
      toast(`Розподілено посилань: ${applied} ✓`);
     }catch(err){
      logEl.textContent='Помилка: '+(err.message||err);
-     toast(err.message||'Помилка AI-розподілу');
+     toast(err.message||'Помилка перевірки');
     }finally{
      runBtn.disabled=false;
     }
    };
   }
+
   d.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.target,b=f.querySelector('.pr');b.disabled=true;
-   try{const v=read(f,fields);if(o.img){const file=f.elements.file.files[0];if(file)v[ic]=await upload(file,o.pre);else if(!r[ic]&&!o.opt)throw Error('Додайте фото');}
+   try{
+    let v;
+    if(isCar){
+     v={
+      title:(f.elements.title?.value||'').trim(),
+      price:(f.elements.price?.value||'').trim(),
+      city:(f.elements.city?.value||'').trim(),
+      phone:(f.elements.phone?.value||'').trim(),
+      owner:(f.elements.owner?.value||'').trim(),
+      description:buildCarDescriptionFromForm(f),
+      sort:+(f.elements.sort?.value)||0,
+      active:!!f.elements.active?.checked
+     };
+    }else{
+     v=read(f,fields);
+    }
+    if(o.img){const file=f.elements.file.files[0];if(file)v[ic]=await upload(file,o.pre);else if(!r[ic]&&!o.opt)throw Error('Додайте фото');}
     let id=r.id,error;if(id){({error}=await sb.from(table).update(v).eq('id',id))}else{const q=await sb.from(table).insert(v).select('id').single();error=q.error;id=q.data&&q.data.id}if(error)throw error;
     if(o.links){const L=o.links,rows=[...d.querySelectorAll('#lkl .pchk:checked')].map(chk=>{const pid=+chk.value;const inp=d.querySelector(`#lkl .purl[data-pid="${pid}"]`);const post_url=(inp?inp.value.trim():'')||null;return {[L.fk]:id,[L.other]:pid,post_url}}),dl=await sb.from(L.table).delete().eq(L.fk,id);if(dl.error)throw dl.error;if(rows.length){const ins=await sb.from(L.table).insert(rows);if(ins.error)throw ins.error}}
     if(o.img&&v[ic]&&r[ic]&&r[ic]!==v[ic]&&r[ic].includes('/banners/'))await sb.storage.from('banners').remove([r[ic].split('/banners/')[1]]);
