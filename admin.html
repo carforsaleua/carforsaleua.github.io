@@ -81,8 +81,8 @@ function inspectUrlsViaExtension(urls){
  });
 }
 
-/* --- розумне локальне зіставлення: ± назва + ± підписники + посилання --- */
-function normalizeText(s){
+/* --- чітке локальне зіставлення за редагованою назвою, підписниками та посиланням --- */
+function cleanPartnerName(s){
  return String(s||'')
   .toLowerCase()
   .replace(/[^\p{L}\p{N}\s/.-]+/gu,' ')
@@ -90,67 +90,51 @@ function normalizeText(s){
   .trim();
 }
 
-function parseFollowersCount(raw){
+function parseFollowers(raw){
  const s=String(raw||'').toLowerCase().replace(/\s+/g,'');
  if(!s)return null;
  const m=s.match(/(\d+(?:[.,]\d+)?)\s*(тис|к|k|млн|m)?/i);
  if(!m)return null;
  let num=parseFloat(m[1].replace(',','.'));
  if(Number.isNaN(num))return null;
- const unit=(m[2]||'').toLowerCase();
- if(unit==='тис'||unit==='к'||unit==='k')num*=1000;
- if(unit==='млн'||unit==='m')num*=1000000;
+ const u=(m[2]||'').toLowerCase();
+ if(u==='тис'||u==='к'||u==='k')num*=1000;
+ if(u==='млн'||u==='m')num*=1000000;
  return num;
 }
 
-function extractNumbersFromText(text){
+function extractPageNumbers(text){
  const out=[];
- const regex=/(\d+(?:[.,]\d+)?)\s*(тис\.?|к|k|млн|m|підписників|followers)?/gi;
- let match;
- while((match=regex.exec(String(text||'')))!==null){
-  let val=parseFloat(match[1].replace(',','.'));
-  if(Number.isNaN(val))continue;
-  const u=(match[2]||'').toLowerCase();
-  if(u.startsWith('тис')||u==='к'||u==='k')val*=1000;
-  if(u.startsWith('млн')||u==='m')val*=1000000;
-  if(val>=500)out.push(val);
+ const rx=/(\d+(?:[.,]\d+)?)\s*(тис\.?|к|k|млн|m|підписників|учасників|members|followers)?/gi;
+ let m;
+ while((m=rx.exec(String(text||'')))!==null){
+  let v=parseFloat(m[1].replace(',','.'));
+  if(Number.isNaN(v))continue;
+  const u=(m[2]||'').toLowerCase();
+  if(u.startsWith('тис')||u==='к'||u==='k')v*=1000;
+  if(u.startsWith('млн')||u==='m')v*=1000000;
+  if(v>=500)out.push(v);
  }
  return out;
 }
 
-function levenshteinSimilarity(a,b){
- if(!a||!b)return 0;
- if(a===b)return 1;
- const m=a.length,n=b.length;
- if(Math.abs(m-n)>Math.max(m,n)*0.65)return 0;
- const dp=Array.from({length:m+1},(_,i)=>[i]);
- for(let j=1;j<=n;j++)dp[0][j]=j;
- for(let i=1;i<=m;i++){
-  for(let j=1;j<=n;j++){
-   const cost=a[i-1]===b[j-1]?0:1;
-   dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+cost);
-  }
- }
- return 1-dp[m][n]/Math.max(m,n);
-}
-
-function collectStringsDeep(val, acc=[]){
- if(!val)return acc;
+function collectItemStrings(val, out=[]){
+ if(!val)return out;
  if(typeof val==='string'||typeof val==='number'){
-  acc.push(String(val));
-  return acc;
+  out.push(String(val));
+  return out;
  }
  if(Array.isArray(val)){
-  for(const item of val)collectStringsDeep(item,acc);
-  return acc;
+  for(const x of val)collectItemStrings(x,out);
+  return out;
  }
  if(typeof val==='object'){
-  for(const k of Object.keys(val))collectStringsDeep(val[k],acc);
+  for(const k of Object.keys(val))collectItemStrings(val[k],out);
  }
- return acc;
+ return out;
 }
 
-function matchPostsLocally(partners, inspectedItems, inputUrls=[]){
+function matchPostsStrictly(partners, inspectedItems, inputUrls=[]){
  const matches=[];
  const unmatched=[];
  const seenUrls=new Set();
@@ -160,87 +144,88 @@ function matchPostsLocally(partners, inspectedItems, inputUrls=[]){
   if(!postUrl)continue;
   seenUrls.add(postUrl);
 
-  const rawParts=collectStringsDeep(item);
-  const combinedRaw=rawParts.join(' | ');
-  const combinedLower=combinedRaw.toLowerCase();
-  const combinedNorm=normalizeText(combinedRaw);
-  const tokens=combinedNorm.split(' ').filter(t=>t.length>=2);
-  const pageNumbers=extractNumbersFromText(combinedRaw);
+  const parts=collectItemStrings(item);
+  const rawText=parts.join(' | ');
+  const lowerText=rawText.toLowerCase();
+  const normText=cleanPartnerName(rawText);
+  const pageNums=extractPageNumbers(rawText);
 
-  let bestPartner=null;
-  let bestScore=0;
-
+  // Збираємо всі можливі назви/фрагменти назви кожного партнера (повна назва та частини через "/")
+  const candidates=[];
   for(const p of partners){
-   let score=0;
+   const fullClean=cleanPartnerName(p?.name||'');
    const pLink=String(p?.link||'').trim().toLowerCase();
-   const pNameNorm=normalizeText(p?.name||'');
-   const pFollowers=parseFollowersCount(p?.followers||'');
+   const pSubs=parseFollowers(p?.followers||'');
 
-   // 1. Пряме збігання посилання сторінки/групи
-   if(pLink && combinedLower.includes(pLink)){
-    score+=90;
+   const nameVariants=new Set();
+   if(fullClean)nameVariants.add(fullClean);
+   for(const part of String(p?.name||'').split('/').map(s=>cleanPartnerName(s)).filter(s=>s.length>=4)){
+    nameVariants.add(part);
    }
 
-   // 2. ± збіг назви (повна назва, частини через / або ., слова та нечітка схожість)
-   if(pNameNorm){
-    if(combinedNorm.includes(pNameNorm)){
-     score+=60;
-    }else{
-     const segments=String(p?.name||'')
-      .split(/[/.|•]+/)
-      .map(s=>normalizeText(s))
-      .filter(s=>s.length>=3);
-     for(const seg of segments){
-      if(combinedNorm.includes(seg))score+=32;
-     }
+   let nameScore=0;
+   let matchedExactOrStrong=false;
 
-     const pWords=pNameNorm.split(' ').filter(w=>w.length>=2);
-     if(pWords.length){
-      let wordHits=0;
-      for(const pw of pWords){
-       if(combinedNorm.includes(pw)){
-        wordHits+=1;
-       }else{
-        const bestSim=Math.max(0,...tokens.map(tk=>levenshteinSimilarity(pw,tk)));
-        if(bestSim>=0.7)wordHits+=0.85;
-       }
-      }
-      score+=(wordHits/pWords.length)*50;
-     }
+   if(pLink && lowerText.includes(pLink)){
+    nameScore=120;
+    matchedExactOrStrong=true;
+   }
 
-     const candidateChunks=rawParts
-      .map(s=>normalizeText(s))
-      .filter(s=>s.length>=3 && s.length<=160);
-     for(const ch of candidateChunks){
-      const sim=levenshteinSimilarity(pNameNorm,ch);
-      if(sim>=0.62)score+=sim*35;
+   for(const v of nameVariants){
+    if(normText.includes(v)){
+     // Чим довший точний фрагмент назви збігся — тим вищий пріоритет
+     const s=70+Math.min(40,v.length);
+     if(s>nameScore)nameScore=s;
+     matchedExactOrStrong=true;
+    }
+   }
+
+   // Якщо жоден варіант не увійшов цілком — перевіряємо збіг усіх значущих слів назви (>=3 літери)
+   if(!matchedExactOrStrong && fullClean){
+    const words=fullClean.split(' ').filter(w=>w.length>=3);
+    if(words.length>=2){
+     const hits=words.filter(w=>normText.includes(w)).length;
+     if(hits===words.length){
+      nameScore=55+hits*4;
+      matchedExactOrStrong=true;
      }
     }
    }
 
-   // 3. ± збіг підписників (допуск ±30%)
-   if(pFollowers && pageNumbers.length){
-    const closeNum=pageNumbers.some(n=>Math.abs(n-pFollowers)/pFollowers<=0.30);
-    if(closeNum)score+=30;
+   if(!matchedExactOrStrong)continue;
+
+   // Додатковий бал за близькість кількості підписників (±15%)
+   let subsBonus=0;
+   if(pSubs && pageNums.length){
+    const close=pageNums.some(n=>Math.abs(n-pSubs)/pSubs<=0.15);
+    if(close)subsBonus=25;
    }
 
-   if(score>bestScore){
-    bestScore=score;
-    bestPartner=p;
-   }
+   candidates.push({
+    partner:p,
+    totalScore:nameScore+subsBonus
+   });
   }
 
-  if(bestPartner && bestScore>=20){
-   matches.push({partner_id:bestPartner.id,post_url:postUrl,score:Math.round(bestScore)});
+  candidates.sort((a,b)=>b.totalScore-a.totalScore);
+
+  if(candidates.length>0){
+   matches.push({
+    partner_id:candidates[0].partner.id,
+    partner_name:candidates[0].partner.name,
+    post_url:postUrl
+   });
   }else{
-   unmatched.push({post_url:postUrl,title:item?.title||''});
+   unmatched.push({
+    post_url:postUrl,
+    info:cleanPartnerName(item?.title||item?.final_url||'').slice(0,90)
+   });
   }
  }
 
- // Якщо якесь вхідне посилання взагалі не повернулося в inspectedItems — теж позначаємо як нерозпізнане
  for(const u of inputUrls){
   if(!seenUrls.has(u)){
-   unmatched.push({post_url:u,title:'Не вдалося зчитати дані поста'});
+   unmatched.push({post_url:u,info:'не вдалося зчитати дані поста'});
   }
  }
 
@@ -366,9 +351,9 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
     logEl.textContent=`Перевіряю ${urls.length} посилань через розширення Safari…`;
     try{
      const inspected=await inspectUrlsViaExtension(urls);
-     const {matches,unmatched}=matchPostsLocally(partnersList,inspected,urls);
+     const {matches,unmatched}=matchPostsStrictly(partnersList,inspected,urls);
      let applied=0;
-     const extraUnmatched=[...unmatched];
+     const failedItems=[...unmatched];
      for(const m of matches){
       const pid=String(m.partner_id||'');
       const purl=String(m.post_url||'').trim();
@@ -379,15 +364,16 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
        if(inp)inp.value=purl;
        applied++;
       }else{
-       extraUnmatched.push({post_url:purl,title:''});
+       failedItems.push({post_url:purl,info:m.partner_name||'не вдалося вставити галочку'});
       }
      }
      cnt();
-     if(extraUnmatched.length){
-      unmatchedEl.innerHTML=extraUnmatched.map(u=>`<div class="unmatched-item">Не проставилась галочка / не знайдено партнера (не збережеться): <b>${esc(u.post_url)}</b>${u.title?` <small style="color:#ff9aa2">(${esc(u.title)})</small>`:''}</div>`).join('');
+     if(failedItems.length){
+      unmatchedEl.innerHTML=failedItems.map(u=>`<div class="unmatched-item">Не поставилось галочкою (не збережеться): <b>${esc(u.post_url)}</b>${u.info?` <small style="color:#ff9aa2">[${esc(u.info)}]</small>`:''}</div>`).join('');
      }
-     logEl.textContent=`Готово: розставлено ${applied} із ${urls.length} посилань.${extraUnmatched.length?` Червоним підсвічено ${extraUnmatched.length} без галочки — вони нікуди не вставлені і не збережуться.`:''}`;
-     toast(`Розподілено посилань: ${applied} ✓`);
+     const matchedLines=matches.map(m=>`✓ ${m.partner_name} ← ${m.post_url}`).join('\n');
+     logEl.textContent=`Проставлено галочок: ${applied} із ${urls.length}.${failedItems.length?` Не пройшло: ${failedItems.length} (підсвічено червоним).`:''}${matchedLines?`\n${matchedLines}`:''}`;
+     toast(`Галочок проставлено: ${applied} із ${urls.length}`);
     }catch(err){
      logEl.textContent='Помилка: '+(err.message||err);
      toast(err.message||'Помилка перевірки');
