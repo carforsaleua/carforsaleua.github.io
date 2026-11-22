@@ -57,28 +57,23 @@ async function upload(file,pre=''){const bmp=await createImageBitmap(file),w=Mat
 const fld=([k,l,t],v)=>{const x=v?.[k]??(t==='check'?true:'');return t==='check'?`<label><input type="checkbox" name="${k}" ${x?'checked':''} style="width:auto;margin:0 6px 12px 0">${l}</label>`:t==='textarea'?`<label>${l}<textarea name="${k}" rows="3">${esc(x)}</textarea></label>`:`<label>${l}<input name="${k}" type="${t||'text'}" value="${esc(x)}"></label>`};
 const read=(f,fs)=>{const o={};fs.forEach(([k,,t])=>{const e=f.elements[k];if(!e)return;o[k]=t==='check'?e.checked:t==='number'?+e.value||0:e.value.trim()});return o};
 
-/* --- запит до Safari Extension --- */
-function inspectUrlsViaExtension(urls){
+/* --- запит до Safari Extension (ping + прогрес) --- */
+function extCall(action,payload,onProgress){
  return new Promise((resolve,reject)=>{
   const reqId='cfs_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  let done=false;
-  const timeoutMs=Math.max(300000,urls.length*25000);
-  const timer=setTimeout(()=>{
-   if(done)return;
-   done=true;
-   window.removeEventListener('message',onMsg);
-   reject(Error('Розширення Safari не встигло завершити перевірку вчасно. Спробуй розбити список на менші частини або перезавантаж сторінку.'));
-  },timeoutMs);
-  const onMsg=ev=>{
-   if(ev.source!==window||!ev.data||ev.data.source!=='CFS_EXT_RES'||ev.data.reqId!==reqId)return;
-   done=true;
-   clearTimeout(timer);
-   window.removeEventListener('message',onMsg);
-   if(ev.data.error)reject(Error(ev.data.error));
-   else resolve(ev.data.items||[]);
-  };
+  let finished=false,pong=false,idle,pingT;
+  function cleanup(){clearTimeout(idle);clearTimeout(pingT);window.removeEventListener('message',onMsg)}
+  const fail=m=>{if(finished)return;finished=true;cleanup();reject(Error(m))};
+  const bump=()=>{clearTimeout(idle);idle=setTimeout(()=>fail('Розширення Safari не подає ознак життя 90 с. Оновіть сторінку (⌥⌘R) і спробуйте меншу пачку.'),90000)};
+  pingT=setTimeout(()=>{if(!pong)fail('Розширення Safari не відповідає. Увімкніть його в Safari (Налаштування → Розширення) і оновіть сторінку (⌥⌘R).')},2500);
+  function onMsg(ev){
+   const m=ev.data;if(ev.source!==window||!m||m.reqId!==reqId)return;
+   if(m.source==='CFS_EXT_PONG'){pong=true;clearTimeout(pingT);bump();return}
+   if(m.source==='CFS_EXT_PROGRESS'){bump();onProgress&&onProgress(m.done,m.total);return}
+   if(m.source==='CFS_EXT_RES'){finished=true;cleanup();m.error?reject(Error(m.error)):resolve(m.items||[])}
+  }
   window.addEventListener('message',onMsg);
-  window.postMessage({source:'CFS_ADMIN',action:'INSPECT_URLS',reqId,urls},'*');
+  window.postMessage({source:'CFS_ADMIN',action,reqId,...payload},'*');
  });
 }
 
@@ -135,112 +130,27 @@ function collectItemStrings(val, out=[]){
  return out;
 }
 
-function matchPostsStrictly(partners, inspectedItems, inputUrls=[]){
- const matches=[];
- const unmatched=[];
- const seenUrls=new Set();
- const usedPartners=new Set();
+const normName=s=>String(s||'').toLowerCase().replace(/\(\d+\+?\)/g,' ').replace(/[^\p{L}\p{N}\s/.-]+/gu,' ').replace(/\s+/g,' ').replace(/[.\s]+$/,'').trim();
+const partnerIds=p=>String(p?.fb_group_id||'').toLowerCase().split(/[\s,;]+/).filter(Boolean);
+const nameEq=(a,b)=>{if(!a||!b)return false;if(a===b)return true;const s=a.length<b.length?a:b,l=a.length<b.length?b:a;return s.length>=15&&l.startsWith(s)};
 
- // Будуємо пари (postUrl, candidatePartner, score) і розставляємо по найкращому збігу без дублювання партнера
- const scoredPairs=[];
-
- for(const item of inspectedItems){
-  const postUrl=String(item?.post_url||'').trim();
-  if(!postUrl)continue;
-  seenUrls.add(postUrl);
-
-  const parts=collectItemStrings(item);
-  const rawText=parts.join(' | ');
-  const lowerText=rawText.toLowerCase();
-  const normText=cleanPartnerName(rawText);
-  const pageNums=extractPageNumbers(rawText);
-
-  for(const p of partners){
-   const fullClean=cleanPartnerName(p?.name||'');
-   const pLink=String(p?.link||'').trim().toLowerCase();
-   const pSubs=parseFollowers(p?.followers||'');
-
-   const nameVariants=new Set();
-   if(fullClean)nameVariants.add(fullClean);
-   for(const part of String(p?.name||'').split('/').map(s=>cleanPartnerName(s)).filter(s=>s.length>=5)){
-    nameVariants.add(part);
-   }
-
-   let nameScore=0;
-   let hasMatch=false;
-
-   if(pLink && lowerText.includes(pLink)){
-    nameScore=120;
-    hasMatch=true;
-   }
-
-   for(const v of nameVariants){
-    if(normText.includes(v)){
-     const s=70+Math.min(40,v.length);
-     if(s>nameScore)nameScore=s;
-     hasMatch=true;
-    }
-   }
-
-   if(!hasMatch && fullClean){
-    const words=fullClean.split(' ').filter(w=>w.length>=3);
-    if(words.length>=2){
-     const hits=words.filter(w=>normText.includes(w)).length;
-     if(hits===words.length){
-      nameScore=55+hits*4;
-      hasMatch=true;
-     }
-    }
-   }
-
-   if(!hasMatch)continue;
-
-   let subsBonus=0;
-   if(pSubs && pageNums.length){
-    const close=pageNums.some(n=>Math.abs(n-pSubs)/pSubs<=0.15);
-    if(close)subsBonus=25;
-   }
-
-   scoredPairs.push({
-    postUrl,
-    partner:p,
-    score:nameScore+subsBonus
-   });
-  }
+/* Суворе зіставлення: 1) збіг group_id; 2) повний збіг назви. Без підрядків і підписників.
+   Неоднозначне або невідоме -> у unmatched (ручний вибір). Один партнер = один пост. */
+function matchPostsStrictly(partners, items, inputUrls=[]){
+ const matches=[],unmatched=[],used=new Map(),seen=new Set();
+ for(const it of items){
+  const url=String(it?.post_url||'').trim();if(!url)continue;seen.add(url);
+  const ids=(it.group_ids||[]).map(x=>String(x).toLowerCase()),nm=normName(it.group_name);
+  if(it.error&&!ids.length&&!nm){unmatched.push({post_url:url,info:it.error});continue}
+  let cand=partners.filter(p=>partnerIds(p).some(x=>ids.includes(x))),how='id';
+  if(!cand.length&&nm){cand=partners.filter(p=>nameEq(normName(p.name),nm));how='назва'}
+  const label=it.group_name||ids.join(', ')||'?';
+  if(cand.length!==1){unmatched.push({post_url:url,info:cand.length?`неоднозначно: ${cand.map(p=>p.name).join(' / ')}`:`групу «${label}» не знайдено серед партнерів`});continue}
+  const p=cand[0],pid=String(p.id);
+  if(used.has(pid)){unmatched.push({post_url:url,info:`партнер «${p.name}» уже отримав інший пост (${used.get(pid)})`});continue}
+  used.set(pid,url);matches.push({partner_id:p.id,partner_name:p.name,post_url:url,how});
  }
-
- scoredPairs.sort((a,b)=>b.score-a.score);
-
- const assignedUrls=new Set();
- for(const pair of scoredPairs){
-  if(assignedUrls.has(pair.postUrl))continue;
-  if(usedPartners.has(String(pair.partner.id)))continue;
-  assignedUrls.add(pair.postUrl);
-  usedPartners.add(String(pair.partner.id));
-  matches.push({
-   partner_id:pair.partner.id,
-   partner_name:pair.partner.name,
-   post_url:pair.postUrl
-  });
- }
-
- for(const item of inspectedItems){
-  const postUrl=String(item?.post_url||'').trim();
-  if(!postUrl)continue;
-  if(!assignedUrls.has(postUrl)){
-   unmatched.push({
-    post_url:postUrl,
-    info:cleanPartnerName(item?.title||item?.final_url||'не збіглося з жодним партнером').slice(0,90)
-   });
-  }
- }
-
- for(const u of inputUrls){
-  if(!seenUrls.has(u)){
-   unmatched.push({post_url:u,info:'не вдалося зчитати дані поста'});
-  }
- }
-
+ for(const u of inputUrls)if(!seen.has(u))unmatched.push({post_url:u,info:'розширення не повернуло дані'});
  return {matches,unmatched};
 }
 
@@ -342,11 +252,12 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
 
   document.body.append(d);d.showModal();const close=()=>{d.close();d.remove()};d.querySelector('#x').onclick=close;
 
-  if(o.links){const L=o.links,[po,pc]=await Promise.all([sb.from(L.src).select('id,name,followers,logo,link').order('sort').order('name'),r.id?sb.from(L.table).select(`${L.other},post_url`).eq(L.fk,r.id):Promise.resolve({data:[]})]);const partnersList=po.data||[];const map=new Map((pc.data||[]).map(x=>[String(x[L.other]),x.post_url||'']));
+  if(o.links){const L=o.links,[po,pc]=await Promise.all([sb.from(L.src).select('id,name,followers,logo,link,fb_group_id').order('sort').order('name'),r.id?sb.from(L.table).select(`${L.other},post_url`).eq(L.fk,r.id):Promise.resolve({data:[]})]);const partnersList=po.data||[];const map=new Map((pc.data||[]).map(x=>[String(x[L.other]),x.post_url||'']));
    d.querySelector('#lk').innerHTML=`<h3 style="margin-top:6px">Де розміщено (історія)</h3>
    <div class="ai-box">
     <label>Встав сюди всі посилання на пости (по одному або текстом — розширення Safari перевірить їх і код розставить по партнерах)<textarea id="aiUrls" rows="4" placeholder="https://www.facebook.com/share/r/...&#10;https://www.facebook.com/share/p/..."></textarea></label>
     <button type="button" class="pr" id="aiRun">⚡ Перевірити через Safari та розподілити</button>
+    <button type="button" id="aiResolve" style="margin-top:8px">🔗 Зчитати ID груп партнерів (разово)</button>
     <div class="ai-log" id="aiLog"></div>
     <div class="unmatched-list" id="aiUnmatched"></div>
    </div>
@@ -354,45 +265,50 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
    const cnt=()=>d.querySelector('#lkc').textContent='Обрано: '+d.querySelectorAll('#lkl .pchk:checked').length;cnt();
    d.querySelector('#lkl').onchange=cnt;d.querySelector('#lka').onclick=()=>{d.querySelectorAll('#lkl > div:not([hidden]) .pchk').forEach(i=>i.checked=true);cnt()};d.querySelector('#lkn').onclick=()=>{d.querySelectorAll('#lkl .pchk').forEach(i=>i.checked=false);cnt()};
    d.querySelector('#lks').oninput=e=>{const q=e.target.value.toLowerCase();d.querySelectorAll('#lkl > div').forEach(row=>row.hidden=!row.dataset.n.includes(q))};
+   const logEl=d.querySelector('#aiLog'),unmatchedEl=d.querySelector('#aiUnmatched');
+   const assign=(pid,url)=>{const k=CSS.escape(String(pid)),chk=d.querySelector(`#lkl .pchk[value="${k}"]`),inp=d.querySelector(`#lkl .purl[data-pid="${k}"]`);if(!chk)return false;chk.checked=true;if(inp)inp.value=url;return true};
+   const renderUn=list=>{unmatchedEl.innerHTML=list.map(u=>`<div class="unmatched-item" data-u="${esc(u.post_url)}">⚠ <b>${esc(u.post_url)}</b><br><small style="color:#ff9aa2">${esc(u.info||'')}</small><br><select class="aiPick" style="margin-top:6px;padding:6px;max-width:70%"><option value="">— обрати партнера вручну —</option>${partnersList.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select> <button type="button" class="aiSet">Призначити</button></div>`).join('')};
+   unmatchedEl.onclick=e=>{const b=e.target.closest('.aiSet');if(!b)return;const row=b.closest('.unmatched-item'),pid=row.querySelector('.aiPick').value;if(!pid)return toast('Обери партнера');if(assign(pid,row.dataset.u)){row.remove();cnt();toast('Призначено')}};
+   const realChecked=()=>d.querySelectorAll('#lkl .pchk:checked').length;
+
    d.querySelector('#aiRun').onclick=async()=>{
-    const urlsInp=d.querySelector('#aiUrls'),runBtn=d.querySelector('#aiRun'),logEl=d.querySelector('#aiLog'),unmatchedEl=d.querySelector('#aiUnmatched');
+    const urlsInp=d.querySelector('#aiUrls'),runBtn=d.querySelector('#aiRun');
     const urls=[...new Set((urlsInp.value.match(/https?:\/\/[^\s"'<>]+/gi)||[]).map(u=>u.replace(/[),.;]+$/,'')))];
     if(!urls.length)return toast('Встав хоча б одне посилання https://...');
-    runBtn.disabled=true;
-    unmatchedEl.innerHTML='';
-    logEl.textContent=`Перевіряю ${urls.length} посилань через розширення Safari…`;
+    runBtn.disabled=true;unmatchedEl.innerHTML='';
+    logEl.textContent=`Перевіряю ${urls.length} посилань…`;
     try{
-     const inspected=await inspectUrlsViaExtension(urls);
+     const inspected=await extCall('INSPECT_URLS',{urls},(a,b)=>{logEl.textContent=`Перевірено ${a} із ${b}…`});
      const {matches,unmatched}=matchPostsStrictly(partnersList,inspected,urls);
-     let applied=0;
-     const appliedLines=[];
-     const failedItems=[...unmatched];
+     const lines=[];let applied=0;
      for(const m of matches){
-      const pid=String(m.partner_id||'');
-      const purl=String(m.post_url||'').trim();
-      const chk=d.querySelector(`#lkl .pchk[value="${CSS.escape(pid)}"]`);
-      const inp=d.querySelector(`#lkl .purl[data-pid="${CSS.escape(pid)}"]`);
-      if(chk&&purl){
-       chk.checked=true;
-       if(inp)inp.value=purl;
-       applied++;
-       appliedLines.push(`✓ ${m.partner_name} ← ${purl}`);
-      }else{
-       failedItems.push({post_url:purl,info:m.partner_name||'не вдалося вставити галочку'});
-      }
+      if(assign(m.partner_id,m.post_url)){applied++;lines.push(`✓ ${m.partner_name} ← ${m.post_url} (за ${m.how})`)}
+      else unmatched.push({post_url:m.post_url,info:`партнера «${m.partner_name}» немає у списку`});
      }
-     cnt();
-     if(failedItems.length){
-      unmatchedEl.innerHTML=failedItems.map(u=>`<div class="unmatched-item">Не поставилось галочкою (не збережеться): <b>${esc(u.post_url)}</b>${u.info?` <small style="color:#ff9aa2">[${esc(u.info)}]</small>`:''}</div>`).join('');
+     cnt();renderUn(unmatched);
+     logEl.textContent=`Автоматично проставлено: ${applied} із ${urls.length}. Усього галочок зараз: ${realChecked()}.${unmatched.length?` Потребують ручного вибору: ${unmatched.length} (червоні нижче).`:''}${lines.length?`\n${lines.join('\n')}`:''}`;
+     toast(`Проставлено ${applied} із ${urls.length}`);
+    }catch(err){logEl.textContent='Помилка: '+(err.message||err);toast(err.message||'Помилка перевірки')}
+    finally{runBtn.disabled=false}
+   };
+
+   d.querySelector('#aiResolve').onclick=async()=>{
+    const btn=d.querySelector('#aiResolve'),todo=partnersList.filter(p=>p.link&&!String(p.fb_group_id||'').trim());
+    if(!todo.length)return toast('Усі партнери вже мають ID груп');
+    btn.disabled=true;logEl.textContent=`Зчитую ID груп: ${todo.length}…`;
+    try{
+     const res=await extCall('RESOLVE_GROUPS',{urls:todo.map(p=>p.link)},(a,b)=>{logEl.textContent=`Зчитано ${a} із ${b}…`});
+     const ok=[],bad=[];
+     for(let i=0;i<todo.length;i++){
+      const p=todo[i],r=res[i]||{},ids=r.group_ids||[];
+      if(!ids.length){bad.push(`✗ ${p.name}: ${r.error||'ID не знайдено'}`);continue}
+      const val=ids.join(','),{error}=await sb.from('partners').update({fb_group_id:val}).eq('id',p.id);
+      if(error){bad.push(`✗ ${p.name}: ${error.message}`);continue}
+      p.fb_group_id=val;ok.push(`✓ ${p.name} → FB «${r.group_name||'?'}» [${val}]`);
      }
-     logEl.textContent=`Проставлено галочок: ${applied} із ${urls.length}.${failedItems.length?` Не пройшло: ${failedItems.length} (підсвічено червоним).`:''}${appliedLines.length?`\n${appliedLines.join('\n')}`:''}`;
-     toast(`Галочок проставлено: ${applied} із ${urls.length}`);
-    }catch(err){
-     logEl.textContent='Помилка: '+(err.message||err);
-     toast(err.message||'Помилка перевірки');
-    }finally{
-     runBtn.disabled=false;
-    }
+     logEl.textContent=`Збережено ID: ${ok.length} із ${todo.length}. Перевір, що назви збігаються.\n${[...ok,...bad].join('\n')}`;
+    }catch(err){logEl.textContent='Помилка: '+(err.message||err)}
+    finally{btn.disabled=false}
    };
   }
 
