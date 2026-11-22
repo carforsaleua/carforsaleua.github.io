@@ -34,8 +34,8 @@ dialog{background:var(--p);color:#eee;border:1px solid var(--red);border-radius:
  <form id="lf"><label>Логін або email<input name="e" type="text" autocomplete="username" autocapitalize="none" required></label><label>Пароль<input name="p" type="password" autocomplete="current-password" required></label><button class="pr" style="width:100%">Увійти</button></form></div>
 <div id="app" class="w" hidden>
  <div class="top"><h1>Адмінка CARFORSALE.UA</h1><span><a href="index.html" target="_blank" style="color:#aaa">Сайт ↗</a> <button id="out">Вийти</button></span></div>
- <div class="tabs" id="tabs"><button data-t="cars" class="on">Авто</button><button data-t="banner">Банер</button><button data-t="team">Команда</button><button data-t="part">Партнери</button><button data-t="tar">Тарифи</button><button data-t="stats">Статистика</button><button data-t="app">Додаток</button><button data-t="rev">Відгуки</button><button data-t="nums">Цифри й тексти</button><button data-t="links">Кнопки й посилання</button></div>
- <div id="p-cars"></div><div id="p-banner" hidden></div><div id="p-team" hidden></div><div id="p-part" hidden><h3>Партнери (групи, де розміщуємо авто)</h3><p class="hint">Додані тут партнери потім обираються галочками в картці авто («Де розміщено»).</p><div id="pp"></div><h3>Стрічка брендів унизу сайту</h3><p class="hint">Показується бігучою стрічкою над футером. Без логотипу виводиться назва. Логотипи додавайте лише тих, хто справді є вашим партнером.</p><div id="pb"></div></div><div id="p-tar" hidden></div><div id="p-stats" hidden><h3>Слайди (платформи)</h3><p class="hint">Назва слайда зв’язує його з показниками нижче. Якщо змінюєте назву, змініть її й у кожному показнику цього слайда.</p><div id="sg"></div><h3>Показники всередині слайдів</h3><div id="si"></div></div><div id="p-app" hidden></div><div id="p-nums" hidden></div><div id="p-links" hidden></div><div id="p-rev" hidden></div>
+ <div class="tabs" id="tabs"><button data-t="post">Подати оголошення</button><button data-t="cars" class="on">Авто</button><button data-t="banner">Банер</button><button data-t="team">Команда</button><button data-t="part">Партнери</button><button data-t="tar">Тарифи</button><button data-t="stats">Статистика</button><button data-t="app">Додаток</button><button data-t="rev">Відгуки</button><button data-t="nums">Цифри й тексти</button><button data-t="links">Кнопки й посилання</button></div>
+ <div id="p-cars"></div><div id="p-post" hidden></div><div id="p-banner" hidden></div><div id="p-team" hidden></div><div id="p-part" hidden><h3>Партнери (групи, де розміщуємо авто)</h3><p class="hint">Додані тут партнери потім обираються галочками в картці авто («Де розміщено»).</p><div id="pp"></div><h3>Стрічка брендів унизу сайту</h3><p class="hint">Показується бігучою стрічкою над футером. Без логотипу виводиться назва. Логотипи додавайте лише тих, хто справді є вашим партнером.</p><div id="pb"></div></div><div id="p-tar" hidden></div><div id="p-stats" hidden><h3>Слайди (платформи)</h3><p class="hint">Назва слайда зв’язує його з показниками нижче. Якщо змінюєте назву, змініть її й у кожному показнику цього слайда.</p><div id="sg"></div><h3>Показники всередині слайдів</h3><div id="si"></div></div><div id="p-app" hidden></div><div id="p-nums" hidden></div><div id="p-links" hidden></div><div id="p-rev" hidden></div>
 </div>
 <div id="toast"></div>
 <script src="config.js"></script>
@@ -354,7 +354,63 @@ async function settings(box,groups,tool){
  f.onsubmit=async e=>{e.preventDefault();const rows=groups.flatMap(g=>g[1]).map(([k])=>({key:k,value:f.elements[k].value.trim()}));const{error}=await sb.from('settings').upsert(rows);toast(error?error.message:'Збережено ✓')}}
 
 /* --- вхід і вкладки --- */
-const tabs={banner:()=>{const p=$('#p-banner');if(!p.firstChild)p.innerHTML='<iframe src="banner.html" title="Банер" style="width:100%;height:calc(100vh - 150px);min-height:900px;border:0;border-radius:12px"></iframe>'},part:()=>{crud($('#pp'),'partners',[['name','Назва (напр. Авто Київ UA)'],['description','Короткий опис','textarea'],['followers','Підписники (лише число, напр. 120 тис.)'],['link','Посилання на сторінку (https://…)'],['sort','Порядок','number'],['active','Показувати на сайті','check']],{img:1,opt:1,ic:'logo',pre:'partner-',imgl:'Логотип або фото сторінки партнера',add:'Додати партнера',title:'name',sub:r=>`${r.followers||''} · ${r.link||'без посилання'}`});crud($('#pb'),'brands',[['name','Назва бренду'],['sort','Порядок','number'],['active','Показувати','check']],{img:1,opt:1,ic:'logo',pre:'brand-',imgl:'Логотип (необов’язково)',add:'Додати бренд',title:'name',sub:r=>r.logo?'з логотипом':'лише назва'})},
+
+/* --- Подати оголошення: дані -> банер -> фото -> підпис (фото лише в пам'яті браузера) --- */
+function postCaption(X){
+ const nm=v=>String(v==null?'':v).trim(),LIM=1022,city=nm(X.city).replace(/^м\.?\s*/i,''),ph=nm(X.phone).replace(/\D/g,'').replace(/^380/,'0')||nm(X.phone);
+ const L=[`#${X.pack}`,`⭐️${nm(X.title)}`,'',`Рік:${nm(X.year)}`,`Ціна:${nm(X.price).replace(/\D/g,'')}$`,`Пробіг:${nm(X.mileage)} тис.км.`,`Розташування:м.${city}`,`Двигун:${[nm(X.vol),nm(X.fuel).toLowerCase()].filter(Boolean).join(' ')}`,`Коробка передач:${nm(X.gear).toLowerCase()}`,`Привід:${nm(X.drive).toLowerCase()}`];
+ if(nm(X.color))L.push(`Колір:${nm(X.color)}`);if(nm(X.vin))L.push(`VIN:${nm(X.vin)}`);
+ const base=L.join('\n')+'\n\n📱Звʼязок:'+ph+` (${nm(X.who)||'Власник'})`,pre='✨Опис від власника:\n';let d=nm(X.desc),note='',text=base;
+ if(d){const room=LIM-base.length-pre.length-2;
+  if(room<20){note='опис не поміщається і пропущений';}
+  else{if(d.length>room){d=d.slice(0,room-1).replace(/\s+\S*$/,'')+'…';note='опис скорочено до ліміту'}
+   const i=base.indexOf('\n\n📱');text=base.slice(0,i)+'\n\n'+pre+d+base.slice(i)}}
+ return {text,len:text.length,note};
+}
+function buildPost(){
+ const R=$('#p-post');if(R.dataset.ok)return;R.dataset.ok=1;
+ const OPT={pack:['1','2','3'],fuel:['Бензин','Дизель','Газ/бензин','Гібрид','Електро'],gear:['Механіка','Автомат','Робот','Варіатор'],drive:['Передній','Задній','Повний']};
+ const FLD=[['pack','Пакет розміщення'],['title','Марка і модель'],['year','Рік'],['price','Ціна, $'],['mileage','Пробіг, тис. км'],['city','Місто'],['vol','Об’єм двигуна, л (напр. 2.2)'],['fuel','Паливо'],['gear','Коробка передач'],['drive','Привід'],['color','Колір'],['vin','VIN (якщо є)'],['phone','Телефон'],['who','Ім’я (порожньо = Власник)']];
+ const EXT=[['body','Кузов'],['extra','Додатково у підзаголовок'],['cond','Стан'],['check','Готовий до перевірок'],['trade','Торг / обмін'],['docs','Борги / документи']];
+ const DEF={pack:'1',title:'',year:'',price:'',mileage:'',city:'',vol:'',fuel:'Дизель',gear:'Механіка',drive:'Повний',color:'',vin:'',phone:'',who:'',desc:'',body:'Кросовер',extra:'',cond:'Добрий / усе працює',check:'так',trade:'торг біля авто',docs:'в порядку'};
+ const X={...DEF};try{Object.assign(X,JSON.parse(localStorage.getItem('cfs_post')||'{}'))}catch(e){}
+ const photos=new Array(10).fill(null),nm=v=>String(v==null?'':v).trim();
+ const inp=([k,l])=>`<label>${l}${OPT[k]?`<select data-k="${k}">${OPT[k].map(o=>`<option value="${o}">${k==='pack'?'Пакет '+o:o}</option>`).join('')}</select>`:`<input data-k="${k}" autocomplete="off">`}</label>`;
+ R.innerHTML=`<style>.pg{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.pf label{display:block;font-size:12px;opacity:.75;margin-top:8px}.pf input,.pf select,.pf textarea{width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--ln,#2a2d3a);background:transparent;color:inherit;font:inherit}.ps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}.sl{border:1px dashed var(--ln,#2a2d3a);border-radius:10px;aspect-ratio:4/3;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:12px}.sl img{width:100%;height:100%;object-fit:cover}.sl b{position:absolute;left:6px;top:4px;font-size:11px;background:#000a;color:#fff;padding:1px 6px;border-radius:6px}.sl div{position:absolute;right:4px;bottom:4px;display:flex;gap:3px}.sl button{padding:2px 7px;font-size:12px}#pCap{white-space:pre-wrap;border:1px solid var(--ln,#2a2d3a);border-radius:10px;padding:12px;margin:8px 0}@media(max-width:700px){.pg{grid-template-columns:1fr}.ps{grid-template-columns:repeat(2,1fr)}}</style>
+ <div class="pf"><h3>1. Дані авто</h3><div class="pg">${FLD.map(inp).join('')}</div>
+ <label>Опис від власника<textarea data-k="desc" rows="6"></textarea></label>
+ <details style="margin-top:8px"><summary>Для банера (за потреби змінити)</summary><div class="pg">${EXT.map(inp).join('')}</div></details>
+ <h3>2. Банер</h3><p class="hint">Заповни дані вище, завантаж фото авто, налаштуй і натисни «Використати як фото №1».</p>
+ <iframe id="pbf" src="banner.html" title="Банер" style="width:100%;height:1400px;border:0;border-radius:12px"></iframe>
+ <h3>3. Фото (банер + до 9 фото)</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="button" id="pAdd">+ Додати фото</button><input type="file" id="pFiles" accept="image/*" multiple hidden><button type="button" id="pBan">Завантажити банер файлом</button><input type="file" id="pBanF" accept="image/*" hidden><span id="pSt" class="hint"></span></div><div class="ps" id="pSl"></div>
+ <p class="hint">Фото зберігаються лише в цій вкладці браузера й нікуди не завантажуються, поки не опублікуєш.</p>
+ <h3>4. Підпис для Telegram</h3><div id="pCap"></div><div id="pCnt" class="hint"></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" id="pCopy">Скопіювати підпис</button><button type="button" class="pr" id="pPub" disabled title="Публікацію в Telegram підключимо наступним кроком">Опублікувати в Telegram</button><button type="button" id="pClr">Очистити форму</button></div></div>`;
+ const save=()=>{try{localStorage.setItem('cfs_post',JSON.stringify(X))}catch(e){}};
+ let ft;const sendFields=()=>{clearTimeout(ft);ft=setTimeout(()=>{const w=$('#pbf')&&$('#pbf').contentWindow;if(!w)return;w.postMessage({source:'CFS_ADMIN_BANNER_FIELDS',fields:{title:X.title,year:X.year,price:X.price,mileage:X.mileage,city:nm(X.city).replace(/^м\.?\s*/i,''),phone:X.phone,name:nm(X.who)||'власник',body:X.body,vol:X.vol,fuel:X.fuel,gear:X.gear,drive:X.drive?X.drive+' привід':'',extra:X.extra,cond:X.cond,check:X.check,trade:X.trade,docs:X.docs}},location.origin)},250)};
+ const upd=()=>{const c=postCaption(X),miss=[['title','модель'],['year','рік'],['price','ціна'],['mileage','пробіг'],['city','місто'],['phone','телефон']].filter(([k])=>!nm(X[k])).map(a=>a[1]);
+  $('#pCap').textContent=c.text;$('#pCnt').textContent=`Символів: ${c.len}/1022${c.note?' · '+c.note:''}${miss.length?' · не заповнено: '+miss.join(', '):''}`;sendFields()};
+ const fill=()=>R.querySelectorAll('[data-k]').forEach(el=>{el.value=X[el.dataset.k]==null?'':X[el.dataset.k];el.oninput=el.onchange=()=>{X[el.dataset.k]=el.value;save();upd()}});
+ const drawSl=()=>{$('#pSl').innerHTML=photos.map((p,i)=>`<div class="sl" data-i="${i}"><b>${i?'№'+(i+1):'№1 Банер'}</b>${p?`<img src="${p.url}" alt="">`:'<span>порожньо</span>'}<div>${i>1&&p?'<button type="button" data-a="l">◀</button>':''}${i&&i<9&&p?'<button type="button" data-a="r">▶</button>':''}${p?'<button type="button" data-a="x">✕</button>':''}</div></div>`).join('');
+  const n=photos.filter(Boolean).length,mb=photos.reduce((a,p)=>a+(p?p.blob.size:0),0)/1048576;$('#pSt').textContent=`Фото: ${n}/10 · ${mb.toFixed(1)} МБ`};
+ const setSlot=(i,v)=>{if(photos[i])URL.revokeObjectURL(photos[i].url);photos[i]=v;drawSl()};
+ const loadImg=f=>new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{URL.revokeObjectURL(u);ok(i)};i.onerror=no;i.src=u});
+ async function squeeze(f,max=1600,q=.82){const i=await loadImg(f),k=Math.min(1,max/Math.max(i.naturalWidth,i.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(i.naturalWidth*k);c.height=Math.round(i.naturalHeight*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);const b=await new Promise(r=>c.toBlob(r,'image/jpeg',q));return{blob:b,url:URL.createObjectURL(b)}}
+ const dataBlob=u=>{const [h,b]=u.split(','),m=/:(.*?);/.exec(h)[1],t=atob(b),a=new Uint8Array(t.length);for(let i=0;i<t.length;i++)a[i]=t.charCodeAt(i);return new Blob([a],{type:m})};
+ $('#pAdd').onclick=()=>$('#pFiles').click();$('#pBan').onclick=()=>$('#pBanF').click();
+ $('#pFiles').onchange=async e=>{for(const f of e.target.files){const i=photos.findIndex((p,j)=>j>0&&!p);if(i<0){toast('Максимум 10 фото');break}try{setSlot(i,await squeeze(f))}catch(x){toast('Не вдалося прочитати фото')}}e.target.value=''};
+ $('#pBanF').onchange=async e=>{const f=e.target.files[0];if(f)try{setSlot(0,await squeeze(f,1800,.88))}catch(x){toast('Не вдалося прочитати файл')}e.target.value=''};
+ $('#pSl').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.closest('.sl').dataset.i,a=b.dataset.a;if(a==='x')setSlot(i,null);else{const j=a==='l'?i-1:i+1;[photos[i],photos[j]]=[photos[j],photos[i]];drawSl()}};
+ addEventListener('message',async e=>{if(e.origin!==location.origin)return;const d=e.data||{};
+  if(d.source==='CFS_BANNER'&&d.dataUrl){try{setSlot(0,await squeeze(dataBlob(d.dataUrl),1800,.88));toast('Банер додано як фото №1 ✓')}catch(x){toast('Не вдалося додати банер')}}
+  if(d.source==='CFS_BANNER_H'&&d.h)$('#pbf').style.height=Math.min(3000,d.h+24)+'px'});
+ $('#pbf').onload=sendFields;
+ $('#pCopy').onclick=async()=>{try{await navigator.clipboard.writeText(postCaption(X).text);toast('Підпис скопійовано ✓')}catch(x){toast('Не вдалося скопіювати')}};
+ $('#pClr').onclick=()=>{if(!confirm('Очистити форму і всі фото?'))return;Object.assign(X,DEF);photos.forEach((p,i)=>setSlot(i,null));try{localStorage.removeItem('cfs_post')}catch(x){}fill();upd()};
+ fill();drawSl();upd();
+}
+
+const tabs={post:()=>buildPost(),banner:()=>{const p=$('#p-banner');if(!p.firstChild)p.innerHTML='<iframe src="banner.html" title="Банер" style="width:100%;height:calc(100vh - 150px);min-height:900px;border:0;border-radius:12px"></iframe>'},part:()=>{crud($('#pp'),'partners',[['name','Назва (напр. Авто Київ UA)'],['description','Короткий опис','textarea'],['followers','Підписники (лише число, напр. 120 тис.)'],['link','Посилання на сторінку (https://…)'],['sort','Порядок','number'],['active','Показувати на сайті','check']],{img:1,opt:1,ic:'logo',pre:'partner-',imgl:'Логотип або фото сторінки партнера',add:'Додати партнера',title:'name',sub:r=>`${r.followers||''} · ${r.link||'без посилання'}`});crud($('#pb'),'brands',[['name','Назва бренду'],['sort','Порядок','number'],['active','Показувати','check']],{img:1,opt:1,ic:'logo',pre:'brand-',imgl:'Логотип (необов’язково)',add:'Додати бренд',title:'name',sub:r=>r.logo?'з логотипом':'лише назва'})},
  tar:()=>crud($('#p-tar'),'tariffs',[['name','Назва тарифу'],['price','Ціна (напр. 350₴)'],['subtitle','Короткий підзаголовок'],['badge','Плашка (напр. Популярний; порожньо = без плашки)'],['places','Де публікується (через кому; + на початку = нове порівняно з нижчим тарифом)','textarea'],['features','Що входить (кожен рядок окремий пункт; + на початку = нове порівняно з нижчим тарифом)','textarea'],['sort','Порядок (менше = лівіше)','number'],['active','Показувати на сайті','check']],{add:'Додати тариф',title:'name',sub:r=>`${r.price||''} · ${r.subtitle||''}`}),
  stats:()=>{crud($('#sg'),'stat_groups',[['title','Назва слайда (напр. Instagram)'],['subtitle','Підпис (напр. за 30 днів · станом на 15.11.2026)'],['sort','Порядок','number'],['active','Показувати слайд на сайті','check']],{img:1,opt:1,ic:'proof',pre:'proof-',imgl:'Скріншот-підтвердження (відкривається на сайті по кліку)',add:'Додати слайд',title:'title',sub:r=>(r.subtitle||'')+' · '+(r.proof?'є скріншот':'без скріншота: натисніть «Змінити», щоб додати')});crud($('#si'),'stat_items',[['grp','До якого слайда (точна назва слайда)'],['label','Показник (напр. Перегляди)'],['value','Значення (як є: 3 402 246 або 4,3 млн)'],['delta','Зміна (напр. +14,2% або −18%; можна порожньо)'],['sort','Порядок','number'],['active','Показувати','check']],{add:'Додати показник',title:'label',sub:r=>`${r.grp} · ${r.value} ${r.delta||''}`})},
  app:()=>crud($('#p-app'),'app_screens',[['caption','Підпис під екраном (необов’язково)'],['sort','Порядок','number'],['active','Показувати','check']],{img:1,ic:'image',pre:'app-',imgl:'Скріншот екрана додатка (вертикальний)',add:'Додати екран додатка',title:'caption',sub:r=>'Порядок: '+r.sort}),
@@ -363,7 +419,7 @@ const tabs={banner:()=>{const p=$('#p-banner');if(!p.firstChild)p.innerHTML='<if
  nums:()=>settings($('#p-nums'),NUMS),links:()=>settings($('#p-links'),LINKS,1),
  rev:()=>crud($('#p-rev'),'reviews',[['name','Ім’я клієнта'],['text','Відгук','textarea'],['stars','Зірок (1–5)','number'],['sort','Порядок','number'],['active','Показувати на сайті','check']],{add:'Додати відгук',title:'name',sub:r=>'★'.repeat(r.stars)+' '+r.text.slice(0,70)})};
 const toEmail=v=>{v=String(v).trim();return v.includes('@')?v:v.toLowerCase()+'@staff.carforsale.ua'};
-let ROLE='admin';const WORKER_TABS=['banner'];
+let ROLE='admin';const WORKER_TABS=['post','banner'];
 const applyRole=()=>document.querySelectorAll('#tabs button').forEach(b=>{if(ROLE!=='admin'&&!WORKER_TABS.includes(b.dataset.t)){b.disabled=true;b.textContent='🔒 '+b.textContent;b.style.opacity='.45';b.style.cursor='not-allowed'}});
 const start=async()=>{
  const {data:{user}}=await sb.auth.getUser();
@@ -371,8 +427,8 @@ const start=async()=>{
  const noTable=error&&['42P01','PGRST205'].includes(error.code);
  if((error&&!noTable)||(!error&&!st)){await sb.auth.signOut();$('#app').hidden=true;$('#login').hidden=false;return toast('Немає доступу до адмінки')}
  ROLE=noTable?'admin':st.role;$('#login').hidden=true;$('#app').hidden=false;applyRole();
- ROLE==='admin'?tabs.cars():document.querySelector('#tabs [data-t="banner"]').click()};
-$('#tabs').onclick=e=>{const t=e.target.dataset.t;if(!t||(ROLE!=='admin'&&!WORKER_TABS.includes(t)))return;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b===e.target));['cars','banner','team','part','tar','stats','app','nums','links','rev'].forEach(x=>$('#p-'+x).hidden=x!==t);tabs[t]()};
+ ROLE==='admin'?tabs.cars():document.querySelector('#tabs [data-t="post"]').click()};
+$('#tabs').onclick=e=>{const t=e.target.dataset.t;if(!t||(ROLE!=='admin'&&!WORKER_TABS.includes(t)))return;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b===e.target));['cars','post','banner','team','part','tar','stats','app','nums','links','rev'].forEach(x=>$('#p-'+x).hidden=x!==t);tabs[t]()};
 $('#lf').onsubmit=async e=>{e.preventDefault();const f=e.target,{error}=await sb.auth.signInWithPassword({email:toEmail(f.e.value),password:f.p.value});error?toast('Невірний логін або пароль'):start()};
 $('#out').onclick=async()=>{await sb.auth.signOut();location.reload()};
 if(CFG.url)sb.auth.getSession().then(({data})=>data.session?start():$('#login').hidden=false);
