@@ -62,12 +62,13 @@ function inspectUrlsViaExtension(urls){
  return new Promise((resolve,reject)=>{
   const reqId='cfs_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
   let done=false;
+  const timeoutMs=Math.max(300000,urls.length*25000);
   const timer=setTimeout(()=>{
    if(done)return;
    done=true;
    window.removeEventListener('message',onMsg);
-   reject(Error('Розширення Safari не відповіло. Перевір, що розширення увімкнене в Safari та перезавантаж сторінку.'));
-  },45000);
+   reject(Error('Розширення Safari не встигло завершити перевірку вчасно. Спробуй розбити список на менші частини або перезавантаж сторінку.'));
+  },timeoutMs);
   const onMsg=ev=>{
    if(ev.source!==window||!ev.data||ev.data.source!=='CFS_EXT_RES'||ev.data.reqId!==reqId)return;
    done=true;
