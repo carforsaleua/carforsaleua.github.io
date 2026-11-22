@@ -154,8 +154,9 @@ cv.onpointermove=e=>{if(!dr)return;const k=W/cv.clientWidth;ox=dr.ox+(e.clientX-
 cv.onpointerup=cv.onpointercancel=()=>{dr=null;cv.style.cursor='grab'};
 const out=cb=>{render();cv.toBlob(cb,'image/jpeg',.92)};
 $('dl').onclick=()=>out(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`banner-${(F.title||'car').replace(/\W+/g,'-').toLowerCase()}.jpg`;a.click()});
-$('us').onclick=()=>out(b=>{const r=new FileReader();r.onload=()=>parent.postMessage({source:'CFS_BANNER',dataUrl:r.result},'*');r.readAsDataURL(b)});
-addEventListener('message',e=>{const d=e.data;if(d&&d.source==='CFS_ADMIN_BANNER_FIELDS'){Object.assign(F,d.fields||{});for(const k in F){const i=$('f_'+k);if(i)i.value=F[k]}draw()}});
+$('us').onclick=()=>out(b=>{const r=new FileReader();r.onload=()=>{parent.postMessage({source:'CFS_BANNER',dataUrl:r.result},location.origin);$('us').textContent='✓ Надіслано в оголошення';setTimeout(()=>$('us').textContent='Використати як фото №1',2500)};r.readAsDataURL(b)});
+if(parent!==window)new ResizeObserver(()=>parent.postMessage({source:'CFS_BANNER_H',h:document.body.offsetHeight},location.origin)).observe(document.body);
+addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(d&&d.source==='CFS_ADMIN_BANNER_FIELDS'){Object.assign(F,d.fields||{});for(const k in F){const i=$('f_'+k);if(i)i.value=F[k]}draw()}});
 Promise.all(['italic 700 100px "Roboto Condensed"','italic 900 100px Roboto','700 40px "Roboto Condensed"','400 40px "Roboto Condensed"'].map(f=>document.fonts.load(f,'АбвCar'))).catch(()=>{}).then(draw);
 draw();
 </script></body></html>
