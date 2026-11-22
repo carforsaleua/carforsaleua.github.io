@@ -25,8 +25,21 @@ small{color:var(--mu)}.tp{display:grid;grid-template-columns:repeat(3,1fr);gap:8
 <div class="pn"><h1>Банер кодом (4:3)</h1>
 <label>Фото авто<input type="file" id="ph" accept="image/*"></label>
 <label>Ракурс фото — обери шаблон</label><div class="tp" id="pk"></div>
-<label>Масштаб фото<input type="range" id="zm" min="50" max="300" value="100"></label>
-<small>Перетягуй фото мишею по банеру, щоб поставити авто у вільну праву частину.</small>
+<label>Масштаб фото<input type="range" id="zm" min="30" max="400" value="100"></label>
+<small>Перетягуй фото мишею по банеру, колесо миші = масштаб.</small>
+<div class="r" style="margin-top:6px"><button id="fw" type="button">Заповнити по ширині</button><button id="fh" type="button">Вписати по висоті</button></div>
+<details open style="margin-top:8px"><summary><b>Тонке налаштування фото і фону</b></summary>
+<label>Позиція X<input type="range" id="px" min="-1200" max="1200" value="0"></label>
+<label>Позиція Y<input type="range" id="py" min="-900" max="900" value="0"></label>
+<label>Нахил фото (±10°)<input type="range" id="rt" min="-100" max="100" value="0"></label>
+<label>Яскравість авто<input type="range" id="br" min="-40" max="40" value="0"></label>
+<label>Плавність країв фото<input type="range" id="fe" min="0" max="400" value="170"></label>
+<label>Фон навколо фото<select id="bgm"><option value="blur">Розмита копія фото</option><option value="mirror">Дзеркальне продовження сцени</option><option value="dark">Темний (без фону)</option></select></label>
+<label>Розмиття фону<input type="range" id="bb" min="0" max="100" value="25"></label>
+<label>Затемнення фону<input type="range" id="bd" min="0" max="90" value="45"></label>
+<label>Ширина темної зони зліва<input type="range" id="lw" min="30" max="150" value="100"></label>
+<label>Сила темної зони зліва<input type="range" id="la" min="40" max="100" value="100"></label>
+</details>
 <div class="g" id="fl"></div>
 <div class="r"><button id="rs">Скинути позицію</button><button class="pr" id="dl">⬇ Завантажити JPEG</button><button id="us" hidden>Використати як фото №1</button></div>
 </div>
@@ -43,7 +56,7 @@ const F={title:'Hyundai Santa FE',year:'2009',price:'10750',mileage:'233',city:'
 const LB={title:'Марка і модель',year:'Рік',price:'Ціна, $',mileage:'Пробіг, тис. км',city:'Місто',phone:'Телефон',name:'Підпис біля номера',body:'Кузов',vol:'Об’єм, л',fuel:'Паливо',gear:'КПП',drive:'Привід',extra:'Додатково (у підзаголовок)',cond:'Стан',check:'Готовий до перевірок',trade:'Торг / обмін',docs:'Борги / документи'};
 const cv=$('cv'),c=cv.getContext('2d');cv.width=OUT;cv.height=OUT*3/4;
 let img=null,z=1,ox=0,oy=0,pk='front',raf=0;
-Object.entries(P).forEach(([k,v])=>{const b=document.createElement('button');b.type='button';b.dataset.k=k;b.className=k===pk?'on':'';b.innerHTML=`<img src="${TH[k]}" alt=""><span>${v.n}</span>`;b.onclick=()=>{pk=k;ox=oy=0;[...$('pk').children].forEach(x=>x.className=x.dataset.k===k?'on':'');draw()};$('pk').appendChild(b)});
+Object.entries(P).forEach(([k,v])=>{const b=document.createElement('button');b.type='button';b.dataset.k=k;b.className=k===pk?'on':'';b.innerHTML=`<img src="${TH[k]}" alt=""><span>${v.n}</span>`;b.onclick=()=>{pk=k;ox=oy=0;[...$('pk').children].forEach(x=>x.className=x.dataset.k===k?'on':'');sync();draw()};$('pk').appendChild(b)});
 for(const k in F){const l=document.createElement('label');l.textContent=LB[k];const i=document.createElement('input');i.id='f_'+k;i.value=F[k];i.oninput=()=>{F[k]=i.value;draw()};l.appendChild(i);$('fl').appendChild(l)}
 if(parent!==window)$('us').hidden=false;
 const draw=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(render)};
@@ -57,14 +70,21 @@ const IC={eng:'M3 10h2V8h3V6h6v2h2l2 2h2v6h-2v2l-2 2H9l-3-3v-2H3zM12 10l-2 3h3l-
 function icon(k,x,y,s,col='#ea7d6c',fill){c.save();c.translate(x,y);c.scale(s/24,s/24);c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.7;c.lineJoin=c.lineCap='round';const p=new Path2D(IC[k]);fill||k==='star'?c.fill(p):c.stroke(p);c.restore()}
 function brand(x,y,tw){let sz=100;const P2=[['CAR','#ffffff'],['FOR','#e3342f'],['SALE','#ffffff'],['.','#e3342f'],['UA','#ffffff']],m=()=>{c.font=`italic 900 ${sz}px ${BR}`;return P2.map(p=>c.measureText(p[0]).width)};let ws=m(),t=ws.reduce((a,b)=>a+b);sz=sz*tw/t;ws=m();t=ws.reduce((a,b)=>a+b);let cx=x-t/2;c.textAlign='left';c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=3;c.shadowOffsetY=3;P2.forEach((p,i)=>{c.fillStyle=p[1];c.fillText(p[0],cx,y);cx+=ws[i]});sh0()}
 const fmtPh=s=>{let d=String(s).replace(/\D/g,'');if(d.startsWith('380'))d=d.slice(2);return d.length===10?`(${d.slice(0,3)}) ${d.slice(3,6)} ${d.slice(6,8)} ${d.slice(8)}`:s};
+const V={rt:0,br:0,bgm:'blur',bb:25,bd:45,fe:170,lw:100,la:100};
+const mk=(w,h)=>{const e=document.createElement('canvas');e.width=w;e.height=h;return e};
 function photo(p,aT,aH){
- const iw=img.naturalWidth,ih=img.naturalHeight,sw=64,sh=Math.max(8,Math.round(64*aH/W)),sm=document.createElement('canvas');sm.width=sw;sm.height=sh;
- const k=Math.max(sw/iw,sh/ih);sm.getContext('2d').drawImage(img,(sw-iw*k)/2,(sh-ih*k)/2,iw*k,ih*k);
- c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(sm,0,aT,W,aH);c.fillStyle='rgba(8,9,14,.5)';c.fillRect(0,aT,W,aH);
- const s=Math.max(aH/ih,W*p.share/iw)*z,dw=iw*s,dh=ih*s,x=W-dw+ox,y=(aH-dh)/2+oy;
- const L=document.createElement('canvas');L.width=OUT;L.height=Math.ceil(aH*S);const l=L.getContext('2d');l.scale(S,S);l.drawImage(img,x,y,dw,dh);l.globalCompositeOperation='destination-in';
- const m=(x0,y0,x1,y1)=>{const q=l.createLinearGradient(x0,y0,x1,y1);q.addColorStop(0,'rgba(0,0,0,0)');q.addColorStop(1,'#000');l.fillStyle=q;l.fillRect(0,0,W,aH)};
- if(x>0)m(x,0,x+170,0);if(x+dw<W-1)m(x+dw,0,x+dw-170,0);if(y>0)m(0,y,0,y+90);if(y+dh<aH-1)m(0,y+dh,0,y+dh-90);
+ const iw=img.naturalWidth,ih=img.naturalHeight,s=Math.max(aH/ih,W*p.share/iw)*z,dw=iw*s,dh=ih*s,x=W-dw+ox,y=(aH-dh)/2+oy,hh=Math.ceil(aH*S);
+ if(V.bgm!=='dark'){
+  const B=mk(OUT,hh),b=B.getContext('2d');b.scale(S,S);const kb=Math.max(W/iw,aH/ih);
+  b.drawImage(img,(W-iw*kb)/2,(aH-ih*kb)/2+oy*.3,iw*kb,ih*kb);
+  if(V.bgm==='mirror')for(let k=-6;k<=6;k++){if(!k)continue;const tx=x+k*dw;if(tx>W||tx+dw<0)continue;b.save();if(Math.abs(k)%2){b.translate(tx+dw,0);b.scale(-1,1);b.drawImage(img,0,y,dw,dh)}else b.drawImage(img,tx,y,dw,dh);b.restore()}
+  const bw=Math.max(24,Math.round(W/(2+V.bb*.6))),sm=mk(bw,Math.max(8,Math.round(bw*aH/W)));sm.getContext('2d').drawImage(B,0,0,sm.width,sm.height);
+  c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(sm,0,aT,W,aH);c.fillStyle=`rgba(8,9,14,${V.bd/100})`;c.fillRect(0,aT,W,aH)}
+ const L=mk(OUT,hh),l=L.getContext('2d');l.scale(S,S);l.save();l.translate(x+dw/2,y+dh/2);l.rotate(V.rt*Math.PI/1800);l.drawImage(img,-dw/2,-dh/2,dw,dh);l.restore();
+ if(V.br){l.globalCompositeOperation='source-atop';l.fillStyle=V.br<0?`rgba(0,0,0,${-V.br/100})`:`rgba(255,255,255,${V.br/200})`;l.fillRect(0,0,W,aH)}
+ const f=V.fe;if(f>0){l.globalCompositeOperation='destination-in';
+  const m=(x0,y0,x1,y1)=>{const q=l.createLinearGradient(x0,y0,x1,y1);q.addColorStop(0,'rgba(0,0,0,0)');q.addColorStop(1,'#000');l.fillStyle=q;l.fillRect(0,0,W,aH)};
+  if(x>0)m(x,0,x+f,0);if(x+dw<W-1)m(x+dw,0,x+dw-f,0);if(y>0)m(0,y,0,y+f*.5);if(y+dh<aH-1)m(0,y+dh,0,y+dh-f*.5)}
  c.drawImage(L,0,aT,W,aH);
 }
 function header(p){
@@ -115,15 +135,22 @@ function footer(){
 function render(){
  const p=P[pk],aT=p.top,aH=1430-aT;c.setTransform(S,0,0,S,0,0);c.globalCompositeOperation='source-over';sh0();
  c.fillStyle='#0b0c12';c.fillRect(0,0,W,H);if(img)photo(p,aT,aH);
- let g=c.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(11,12,18,1)');g.addColorStop(p.fs/W,'rgba(11,12,18,1)');g.addColorStop(p.fe/W,'rgba(11,12,18,0)');c.fillStyle=g;c.fillRect(0,aT,W,aH);
+ let g=c.createLinearGradient(0,0,W,0);const la=V.la/100,fe2=p.fs+(p.fe-p.fs)*V.lw/100;g.addColorStop(0,`rgba(11,12,18,${la})`);g.addColorStop(p.fs/W,`rgba(11,12,18,${la})`);g.addColorStop(fe2/W,'rgba(11,12,18,0)');c.fillStyle=g;c.fillRect(0,aT,W,aH);
  if(!p.panel){g=c.createLinearGradient(0,0,0,400);g.addColorStop(0,'rgba(8,9,14,.82)');g.addColorStop(1,'rgba(8,9,14,0)');c.fillStyle=g;c.fillRect(0,0,W,400)}
  header(p);cards();price();footer();$('inf').textContent=img?`Фото: ${img.naturalWidth}×${img.naturalHeight}. Вивід: ${OUT}×${OUT*3/4}`:'Завантаж фото авто — поки що показано порожній шаблон.'
 }
 $('zm').oninput=e=>{z=e.target.value/100;draw()};
-$('rs').onclick=()=>{ox=oy=0;z=1;$('zm').value=100;draw()};
+const sync=()=>{$('px').value=ox;$('py').value=oy;$('zm').value=z*100};
+$('rs').onclick=()=>{ox=oy=0;z=1;V.rt=0;$('rt').value=0;sync();draw()};
+const base=()=>{const p=P[pk];return Math.max((1430-p.top)/img.naturalHeight,W*p.share/img.naturalWidth)};
+$('fw').onclick=()=>{if(!img)return;z=W/img.naturalWidth/base();ox=oy=0;sync();draw()};
+$('fh').onclick=()=>{if(!img)return;z=(1430-P[pk].top)/img.naturalHeight/base();ox=oy=0;sync();draw()};
+[['px',v=>ox=+v],['py',v=>oy=+v],['rt',v=>V.rt=+v],['br',v=>V.br=+v],['bb',v=>V.bb=+v],['bd',v=>V.bd=+v],['fe',v=>V.fe=+v],['lw',v=>V.lw=+v],['la',v=>V.la=+v]].forEach(([id,f])=>$(id).oninput=e=>{f(e.target.value);draw()});
+$('bgm').onchange=e=>{V.bgm=e.target.value;draw()};
+cv.addEventListener('wheel',e=>{e.preventDefault();z=Math.min(4,Math.max(.3,z*(e.deltaY<0?1.04:.96)));sync();draw()},{passive:false});
 $('ph').onchange=e=>{const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{img=i;ox=oy=0;draw()};i.src=u};
 let dr=null;cv.onpointerdown=e=>{dr={x:e.clientX,y:e.clientY,ox,oy};cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'};
-cv.onpointermove=e=>{if(!dr)return;const k=W/cv.clientWidth;ox=dr.ox+(e.clientX-dr.x)*k;oy=dr.oy+(e.clientY-dr.y)*k;draw()};
+cv.onpointermove=e=>{if(!dr)return;const k=W/cv.clientWidth;ox=dr.ox+(e.clientX-dr.x)*k;oy=dr.oy+(e.clientY-dr.y)*k;sync();draw()};
 cv.onpointerup=cv.onpointercancel=()=>{dr=null;cv.style.cursor='grab'};
 const out=cb=>{render();cv.toBlob(cb,'image/jpeg',.92)};
 $('dl').onclick=()=>out(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`banner-${(F.title||'car').replace(/\W+/g,'-').toLowerCase()}.jpg`;a.click()});
