@@ -56,7 +56,7 @@ async function upload(file,pre=''){const bmp=await createImageBitmap(file),w=Mat
 const fld=([k,l,t],v)=>{const x=v?.[k]??(t==='check'?true:'');return t==='check'?`<label><input type="checkbox" name="${k}" ${x?'checked':''} style="width:auto;margin:0 6px 12px 0">${l}</label>`:t==='textarea'?`<label>${l}<textarea name="${k}" rows="3">${esc(x)}</textarea></label>`:`<label>${l}<input name="${k}" type="${t||'text'}" value="${esc(x)}"></label>`};
 const read=(f,fs)=>{const o={};fs.forEach(([k,,t])=>{const e=f.elements[k];o[k]=t==='check'?e.checked:t==='number'?+e.value||0:e.value.trim()});return o};
 
-/* --- виклик Gemini API для зіставлення постів із партнерами --- */
+/* --- виклик Gemini API для зіставлення постів із партнерами (безкоштовні моделі) --- */
 async function matchPostsWithGemini(apiKey, partners, inspectedItems){
  const prompt=`Ти допомагаєш зіставити посилання на опубліковані пости авто з партнерами зі списку.
 Назви груп/партнерів можуть трохи відрізнятися від назви у списку партнерів (скорочення, емодзі, регістр, зайві слова).
@@ -71,20 +71,40 @@ ${JSON.stringify(partners)}
 Перевірені пости:
 ${JSON.stringify(inspectedItems)}`;
 
- const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(apiKey)}`,{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({
-   contents:[{parts:[{text:prompt}]}],
-   generationConfig:{temperature:0.1}
-  })
- });
- const data=await res.json();
- if(!res.ok)throw Error(data.error?.message||'Помилка Gemini API');
- const rawText=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
- const cleaned=rawText.replace(/^```(?:json)?\s*/i,'').replace(/```$/i,'').trim();
- const parsed=JSON.parse(cleaned);
- return Array.isArray(parsed)?parsed:[];
+ const freeModels=[
+  'gemini-flash-latest',
+  'gemini-flash-lite-latest',
+  'gemini-3.5-flash-lite',
+  'gemini-4-hydrogen'
+ ];
+ let lastErr='Помилка Gemini API';
+
+ for(const model of freeModels){
+  for(let attempt=0;attempt<2;attempt++){
+   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+     contents:[{parts:[{text:prompt}]}],
+     generationConfig:{temperature:0.1}
+    })
+   });
+   const data=await res.json();
+   if(res.ok){
+    const rawText=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
+    const cleaned=rawText.replace(/^```(?:json)?\s*/i,'').replace(/```$/i,'').trim();
+    const parsed=JSON.parse(cleaned);
+    return Array.isArray(parsed)?parsed:[];
+   }
+   lastErr=data.error?.message||lastErr;
+   if(res.status===503||res.status===429){
+    await new Promise(r=>setTimeout(r,1500));
+   }else{
+    break;
+   }
+  }
+ }
+ throw Error(lastErr);
 }
 
 /* --- запит до Safari Extension (якщо встановлене) --- */
