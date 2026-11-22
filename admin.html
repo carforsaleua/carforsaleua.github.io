@@ -24,9 +24,8 @@ dialog{background:var(--p);color:#eee;border:1px solid var(--red);border-radius:
 #login{max-width:360px;margin:12vh auto;padding:16px}.hint{color:#999;font-size:13px}
 .ai-box{border:1px solid rgba(225,29,42,.5);background:#100c0d;border-radius:12px;padding:12px;margin:10px 0 14px}
 .ai-log{font-size:12.5px;color:#bbb;margin-top:8px;white-space:pre-line}
-.ai-mini-btn{padding:6px 10px;font-size:12.5px;margin-bottom:6px;background:#1e1315;border-color:rgba(225,29,42,.55)}
 .unmatched-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
-.unmatched-item{border:1px solid #ff4d5a;background:rgba(225,29,42,.16);color:#ffb3b8;border-radius:8px;padding:7px 10px;font-size:12px;word-break:break-all}
+.unmatched-item{border:1px solid #ff4d5a;background:rgba(225,29,42,.18);color:#ffb3b8;border-radius:8px;padding:7px 10px;font-size:12px;word-break:break-all}
 @media(max-width:600px){.g2{grid-template-columns:1fr}.row img{width:84px}}
 </style>
 </head>
@@ -46,7 +45,6 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>(
 if(!CFG.url||!CFG.key){document.body.innerHTML='<p style="padding:30px">Спочатку заповніть <b>config.js</b> (Project URL і anon key з Supabase).</p>'}
 const sb=supabase.createClient(CFG.url||'https://x.supabase.co',CFG.key||'x');
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3500)};
-const GEMINI_KEY_STORAGE='cfs_gemini_api_key';
 
 /* --- фото: стиснення й завантаження --- */
 async function upload(file,pre=''){const bmp=await createImageBitmap(file),w=Math.min(1280,bmp.width),h=Math.round(bmp.height*w/bmp.width),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(bmp,0,0,w,h);
@@ -58,43 +56,6 @@ async function upload(file,pre=''){const bmp=await createImageBitmap(file),w=Mat
 /* --- поля форм --- */
 const fld=([k,l,t],v)=>{const x=v?.[k]??(t==='check'?true:'');return t==='check'?`<label><input type="checkbox" name="${k}" ${x?'checked':''} style="width:auto;margin:0 6px 12px 0">${l}</label>`:t==='textarea'?`<label>${l}<textarea name="${k}" rows="3">${esc(x)}</textarea></label>`:`<label>${l}<input name="${k}" type="${t||'text'}" value="${esc(x)}"></label>`};
 const read=(f,fs)=>{const o={};fs.forEach(([k,,t])=>{const e=f.elements[k];if(!e)return;o[k]=t==='check'?e.checked:t==='number'?+e.value||0:e.value.trim()});return o};
-
-/* --- Gemini асистент для створення описів (безкоштовні моделі) --- */
-async function generateDescriptionWithGemini(promptText, explicitKey=''){
- let apiKey=(explicitKey||localStorage.getItem(GEMINI_KEY_STORAGE)||'').trim();
- if(!apiKey){
-  const entered=window.prompt('Введи Gemini API ключ (збережеться в браузері для генерації описів):','');
-  if(!entered||!entered.trim())throw Error('Ключ Gemini не вказано');
-  apiKey=entered.trim();
-  localStorage.setItem(GEMINI_KEY_STORAGE,apiKey);
- }else{
-  localStorage.setItem(GEMINI_KEY_STORAGE,apiKey);
- }
-
- const freeModels=['gemini-3.5-flash-lite','gemini-flash-lite-latest','gemini-flash-latest','gemini-4-hydrogen'];
- let lastErr='Помилка Gemini API';
- for(const model of freeModels){
-  try{
-   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-     contents:[{parts:[{text:promptText}]}],
-     generationConfig:{temperature:0.4,maxOutputTokens:400,thinkingConfig:{thinkingBudget:0}}
-    })
-   });
-   const data=await res.json();
-   if(res.ok){
-    const text=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();
-    if(text)return text;
-   }
-   lastErr=data.error?.message||lastErr;
-  }catch(e){
-   lastErr=e.message||String(e);
-  }
- }
- throw Error(lastErr);
-}
 
 /* --- запит до Safari Extension --- */
 function inspectUrlsViaExtension(urls){
@@ -161,7 +122,7 @@ function levenshteinSimilarity(a,b){
  if(!a||!b)return 0;
  if(a===b)return 1;
  const m=a.length,n=b.length;
- if(Math.abs(m-n)>Math.max(m,n)*0.6)return 0;
+ if(Math.abs(m-n)>Math.max(m,n)*0.65)return 0;
  const dp=Array.from({length:m+1},(_,i)=>[i]);
  for(let j=1;j<=n;j++)dp[0][j]=j;
  for(let i=1;i<=m;i++){
@@ -173,19 +134,33 @@ function levenshteinSimilarity(a,b){
  return 1-dp[m][n]/Math.max(m,n);
 }
 
-function matchPostsLocally(partners, inspectedItems){
+function collectStringsDeep(val, acc=[]){
+ if(!val)return acc;
+ if(typeof val==='string'||typeof val==='number'){
+  acc.push(String(val));
+  return acc;
+ }
+ if(Array.isArray(val)){
+  for(const item of val)collectStringsDeep(item,acc);
+  return acc;
+ }
+ if(typeof val==='object'){
+  for(const k of Object.keys(val))collectStringsDeep(val[k],acc);
+ }
+ return acc;
+}
+
+function matchPostsLocally(partners, inspectedItems, inputUrls=[]){
  const matches=[];
  const unmatched=[];
+ const seenUrls=new Set();
 
  for(const item of inspectedItems){
   const postUrl=String(item?.post_url||'').trim();
   if(!postUrl)continue;
+  seenUrls.add(postUrl);
 
-  const rawParts=[
-   item?.title||'',
-   item?.final_url||'',
-   ...(Array.isArray(item?.group_links)?item.group_links.map(g=>`${g?.text||''} ${g?.href||''}`):[])
-  ];
+  const rawParts=collectStringsDeep(item);
   const combinedRaw=rawParts.join(' | ');
   const combinedLower=combinedRaw.toLowerCase();
   const combinedNorm=normalizeText(combinedRaw);
@@ -206,11 +181,19 @@ function matchPostsLocally(partners, inspectedItems){
     score+=90;
    }
 
-   // 2. ± збіг назви (включення, збіг слів, нечітка схожість при опечатках/регістрі)
+   // 2. ± збіг назви (повна назва, частини через / або ., слова та нечітка схожість)
    if(pNameNorm){
     if(combinedNorm.includes(pNameNorm)){
-     score+=55;
+     score+=60;
     }else{
+     const segments=String(p?.name||'')
+      .split(/[/.|•]+/)
+      .map(s=>normalizeText(s))
+      .filter(s=>s.length>=3);
+     for(const seg of segments){
+      if(combinedNorm.includes(seg))score+=32;
+     }
+
      const pWords=pNameNorm.split(' ').filter(w=>w.length>=2);
      if(pWords.length){
       let wordHits=0;
@@ -219,26 +202,25 @@ function matchPostsLocally(partners, inspectedItems){
         wordHits+=1;
        }else{
         const bestSim=Math.max(0,...tokens.map(tk=>levenshteinSimilarity(pw,tk)));
-        if(bestSim>=0.72)wordHits+=0.85;
+        if(bestSim>=0.7)wordHits+=0.85;
        }
       }
       score+=(wordHits/pWords.length)*50;
      }
 
-     const candidateChunks=[
-      normalizeText(item?.title||''),
-      ...(Array.isArray(item?.group_links)?item.group_links.map(g=>normalizeText(g?.text||'')):[])
-     ].filter(Boolean);
+     const candidateChunks=rawParts
+      .map(s=>normalizeText(s))
+      .filter(s=>s.length>=3 && s.length<=160);
      for(const ch of candidateChunks){
       const sim=levenshteinSimilarity(pNameNorm,ch);
-      if(sim>=0.65)score+=sim*35;
+      if(sim>=0.62)score+=sim*35;
      }
     }
    }
 
-   // 3. ± збіг підписників (допуск ±25%)
+   // 3. ± збіг підписників (допуск ±30%)
    if(pFollowers && pageNumbers.length){
-    const closeNum=pageNumbers.some(n=>Math.abs(n-pFollowers)/pFollowers<=0.25);
+    const closeNum=pageNumbers.some(n=>Math.abs(n-pFollowers)/pFollowers<=0.30);
     if(closeNum)score+=30;
    }
 
@@ -248,10 +230,17 @@ function matchPostsLocally(partners, inspectedItems){
    }
   }
 
-  if(bestPartner && bestScore>=35){
+  if(bestPartner && bestScore>=20){
    matches.push({partner_id:bestPartner.id,post_url:postUrl,score:Math.round(bestScore)});
   }else{
    unmatched.push({post_url:postUrl,title:item?.title||''});
+  }
+ }
+
+ // Якщо якесь вхідне посилання взагалі не повернулося в inspectedItems — теж позначаємо як нерозпізнане
+ for(const u of inputUrls){
+  if(!seenUrls.has(u)){
+   unmatched.push({post_url:u,title:'Не вдалося зчитати дані поста'});
   }
  }
 
@@ -322,7 +311,6 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
 
  const edit=async(r={})=>{const d=document.createElement('dialog');
   const isCar=table==='cars';
-  const isPartner=table==='partners';
 
   if(isCar){
    const pf=parseCarFields(r);
@@ -343,11 +331,7 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
      <label>Ім'я власника<input name="owner" value="${esc(r.owner||'')}"></label>
      <label>Телефон власника (+380...)<input name="phone" value="${esc(r.phone||'')}"></label>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px">
-     <label style="margin:0">Короткий опис (порожні поля не виводяться)</label>
-     <button type="button" class="ai-mini-btn" id="aiGenCarDesc">✨ Згенерувати опис через AI</button>
-    </div>
-    <textarea name="description" rows="3" placeholder="Короткий опис авто або додаткові деталі…">${esc(pf.freeDesc)}</textarea>
+    <label>Короткий опис (порожні поля не виводяться)<textarea name="description" rows="3" placeholder="Короткий опис авто або додаткові деталі…">${esc(pf.freeDesc)}</textarea></label>
     <div class="g2">
      <label>Порядок<input name="sort" type="number" value="${esc(r.sort??0)}"></label>
      <label style="display:flex;align-items:center;margin-top:22px"><input type="checkbox" name="active" ${r.active!==false?'checked':''} style="width:auto;margin:0 6px 0 0">Показувати на сайті</label>
@@ -360,77 +344,6 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
   }
 
   document.body.append(d);d.showModal();const close=()=>{d.close();d.remove()};d.querySelector('#x').onclick=close;
-
-  if(isPartner){
-   const descEl=d.querySelector('textarea[name="description"]');
-   if(descEl){
-    const btn=document.createElement('button');
-    btn.type='button';
-    btn.className='ai-mini-btn';
-    btn.textContent='✨ Згенерувати опис партнера через AI';
-    descEl.parentElement.insertBefore(btn,descEl);
-    btn.onclick=async()=>{
-     const formEl=d.querySelector('form');
-     const nameVal=formEl.elements.name?.value?.trim()||'';
-     const subsVal=formEl.elements.followers?.value?.trim()||'';
-     const linkVal=formEl.elements.link?.value?.trim()||'';
-     if(!nameVal)return toast('Спочатку вкажи назву партнера');
-     btn.disabled=true;
-     toast('Генерую опис партнера…');
-     try{
-      const txt=await generateDescriptionWithGemini(
-       `Напиши короткий, живий опис українською (1–2 речення, до 200 символів) для автомобільного партнера/групи CARFORSALE.UA.
-Назва: ${nameVal}
-Підписники: ${subsVal||'не вказано'}
-Посилання: ${linkVal||'не вказано'}
-Без лапок і зайвих вступів.`
-      );
-      descEl.value=txt;
-      toast('Опис згенеровано ✓');
-     }catch(err){
-      toast(err.message||'Помилка генерації');
-     }finally{
-      btn.disabled=false;
-     }
-    };
-   }
-  }
-
-  if(isCar){
-   const aiCarBtn=d.querySelector('#aiGenCarDesc');
-   if(aiCarBtn){
-    aiCarBtn.onclick=async()=>{
-     const fEl=d.querySelector('form');
-     const parts=[
-      `Авто: ${fEl.elements.title?.value||''}`,
-      fEl.elements.year?.value?`Рік: ${fEl.elements.year.value}`:'',
-      fEl.elements.price?.value?`Ціна: ${fEl.elements.price.value}`:'',
-      fEl.elements.mileage?.value?`Пробіг: ${fEl.elements.mileage.value}`:'',
-      fEl.elements.city?.value?`Місто: ${fEl.elements.city.value}`:'',
-      fEl.elements.engine?.value?`Двигун: ${fEl.elements.engine.value}`:'',
-      fEl.elements.gearbox?.value?`КПП: ${fEl.elements.gearbox.value}`:'',
-      fEl.elements.drive?.value?`Привід: ${fEl.elements.drive.value}`:'',
-      fEl.elements.color?.value?`Колір: ${fEl.elements.color.value}`:'',
-      fEl.elements.description?.value?`Нотатки: ${fEl.elements.description.value}`:''
-     ].filter(Boolean).join('\n');
-     if(!fEl.elements.title?.value?.trim())return toast('Спочатку вкажи назву авто');
-     aiCarBtn.disabled=true;
-     toast('Формую опис авто через AI…');
-     try{
-      const gen=await generateDescriptionWithGemini(
-       `Склади короткий, привабливий опис авто українською для оголошення (2–3 речення, без зайвого пафосу та без маркованого списку):
-${parts}`
-      );
-      fEl.elements.description.value=gen;
-      toast('Опис авто згенеровано ✓');
-     }catch(err){
-      toast(err.message||'Помилка AI');
-     }finally{
-      aiCarBtn.disabled=false;
-     }
-    };
-   }
-  }
 
   if(o.links){const L=o.links,[po,pc]=await Promise.all([sb.from(L.src).select('id,name,followers,logo,link').order('sort').order('name'),r.id?sb.from(L.table).select(`${L.other},post_url`).eq(L.fk,r.id):Promise.resolve({data:[]})]);const partnersList=po.data||[];const map=new Map((pc.data||[]).map(x=>[String(x[L.other]),x.post_url||'']));
    d.querySelector('#lk').innerHTML=`<h3 style="margin-top:6px">Де розміщено (історія)</h3>
@@ -453,8 +366,9 @@ ${parts}`
     logEl.textContent=`Перевіряю ${urls.length} посилань через розширення Safari…`;
     try{
      const inspected=await inspectUrlsViaExtension(urls);
-     const {matches,unmatched}=matchPostsLocally(partnersList,inspected);
+     const {matches,unmatched}=matchPostsLocally(partnersList,inspected,urls);
      let applied=0;
+     const extraUnmatched=[...unmatched];
      for(const m of matches){
       const pid=String(m.partner_id||'');
       const purl=String(m.post_url||'').trim();
@@ -464,13 +378,15 @@ ${parts}`
        chk.checked=true;
        if(inp)inp.value=purl;
        applied++;
+      }else{
+       extraUnmatched.push({post_url:purl,title:''});
       }
      }
      cnt();
-     if(unmatched.length){
-      unmatchedEl.innerHTML=unmatched.map(u=>`<div class="unmatched-item">Не знайдено партнера — не вставлено та не збережеться: <b>${esc(u.post_url)}</b>${u.title?` <small style="color:#ff9aa2">(${esc(u.title)})</small>`:''}</div>`).join('');
+     if(extraUnmatched.length){
+      unmatchedEl.innerHTML=extraUnmatched.map(u=>`<div class="unmatched-item">Не проставилась галочка / не знайдено партнера (не збережеться): <b>${esc(u.post_url)}</b>${u.title?` <small style="color:#ff9aa2">(${esc(u.title)})</small>`:''}</div>`).join('');
      }
-     logEl.textContent=`Готово: розставлено ${applied} із ${urls.length} посилань.${unmatched.length?` Червоним підсвічено ${unmatched.length} без збігу — вони нікуди не додані.`:''}`;
+     logEl.textContent=`Готово: розставлено ${applied} із ${urls.length} посилань.${extraUnmatched.length?` Червоним підсвічено ${extraUnmatched.length} без галочки — вони нікуди не вставлені і не збережуться.`:''}`;
      toast(`Розподілено посилань: ${applied} ✓`);
     }catch(err){
      logEl.textContent='Помилка: '+(err.message||err);
