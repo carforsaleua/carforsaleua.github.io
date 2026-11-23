@@ -358,13 +358,12 @@ async function settings(box,groups,tool){
 /* --- Подати оголошення: дані -> банер -> фото -> підпис (фото лише в пам'яті браузера) --- */
 function postCaption(X){
  const nm=v=>String(v==null?'':v).trim(),LIM=1022,city=nm(X.city).replace(/^м\.?\s*/i,''),ph=nm(X.phone).replace(/\D/g,'').replace(/^380/,'0')||nm(X.phone);
- const L=[`#${X.pack}`,`⭐️${nm(X.title)}`,'',`Рік:${nm(X.year)}`,`Ціна:${nm(X.price).replace(/\D/g,'')}$`,`Пробіг:${nm(X.mileage)} тис.км.`,`Розташування:м.${city}`,`Двигун:${[nm(X.vol),nm(X.fuel).toLowerCase()].filter(Boolean).join(' ')}`,`Коробка передач:${nm(X.gear).toLowerCase()}`,`Привід:${nm(X.drive).toLowerCase()}`];
- if(nm(X.color))L.push(`Колір:${nm(X.color)}`);if(nm(X.vin))L.push(`VIN:${nm(X.vin)}`);
- const base=L.join('\n')+'\n\n📱Звʼязок:'+ph+` (${nm(X.who)||'Власник'})`,pre='✨Опис від власника:\n';let d=nm(X.desc),note='',text=base;
- if(d){const room=LIM-base.length-pre.length-2;
-  if(room<20){note='опис не поміщається і пропущений';}
-  else{if(d.length>room){d=d.slice(0,room-1).replace(/\s+\S*$/,'')+'…';note='опис скорочено до ліміту'}
-   const i=base.indexOf('\n\n📱');text=base.slice(0,i)+'\n\n'+pre+d+base.slice(i)}}
+ const H=[`#${X.pack}`,`⭐️${nm(X.title)}`,'',`✅Рік:${nm(X.year)}`,`✅Ціна:${nm(X.price).replace(/\D/g,'')}$`,`✅Пробіг:${nm(X.mileage)}тис.км.`,`✅Розташування: ${city}`,`✅Двигун:${[nm(X.vol),nm(X.fuel).toLowerCase()].filter(Boolean).join(' ')}`,`✅Коробка передач:${nm(X.gear)}`,`✅Привід:${nm(X.drive).toLowerCase()}`];
+ if(nm(X.color))H.push(`✅Колір:${nm(X.color)}`);if(nm(X.vin))H.push(`✅VIN:${nm(X.vin)}`);
+ const head=H.join('\n'),tail=`📱 Зв’язок:${ph} (${nm(X.who)||'власник'})\n\ncarforsaleua.com`,pre='✨ Опис від власника:';let d=nm(X.desc),note='';
+ const room=LIM-head.length-tail.length-4-pre.length;let text;
+ if(d&&room>=20){if(d.length>room){d=d.slice(0,room-1).replace(/\s+\S*$/,'')+'…';note='опис скорочено до ліміту'}text=`${head}\n\n${pre}${d}\n\n${tail}`}
+ else{if(d)note='опис не поміщається і пропущений';text=`${head}\n\n${tail}`}
  return {text,len:text.length,note};
 }
 function buildPost(){
@@ -387,7 +386,7 @@ function buildPost(){
  <h3>4. Підпис для Telegram</h3><div id="pCap"></div><div id="pCnt" class="hint"></div>
  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" id="pCopy">Скопіювати підпис</button><button type="button" class="pr" id="pPub" disabled title="Публікацію в Telegram підключимо наступним кроком">Опублікувати в Telegram</button><button type="button" id="pClr">Очистити форму</button></div></div>`;
  const save=()=>{try{localStorage.setItem('cfs_post',JSON.stringify(X))}catch(e){}};
- let ft;const sendFields=()=>{clearTimeout(ft);ft=setTimeout(()=>{const w=$('#pbf')&&$('#pbf').contentWindow;if(!w)return;w.postMessage({source:'CFS_ADMIN_BANNER_FIELDS',fields:{title:X.title,year:X.year,price:X.price,mileage:X.mileage,city:nm(X.city).replace(/^м\.?\s*/i,''),phone:X.phone,name:nm(X.who)||'власник',body:X.body,vol:X.vol,fuel:X.fuel,gear:X.gear,drive:X.drive?X.drive+' привід':'',extra:X.extra,cond:X.cond,check:X.check,trade:X.trade,docs:X.docs}},location.origin)},250)};
+ let ft;const sendFields=()=>{clearTimeout(ft);ft=setTimeout(()=>{const w=$('#pbf')&&$('#pbf').contentWindow;if(!w)return;w.postMessage({source:'CFS_ADMIN_BANNER_FIELDS',fields:{title:X.title,year:X.year,price:X.price,mileage:X.mileage,city:nm(X.city).replace(/^м\.?\s*/i,''),phone:X.phone,color:X.color,name:nm(X.who)||'власник',body:X.body,vol:X.vol,fuel:X.fuel,gear:X.gear,drive:X.drive?X.drive+' привід':'',extra:X.extra,cond:X.cond,check:X.check,trade:X.trade,docs:X.docs}},location.origin)},250)};
  const upd=()=>{const c=postCaption(X),miss=[['title','модель'],['year','рік'],['price','ціна'],['mileage','пробіг'],['city','місто'],['phone','телефон']].filter(([k])=>!nm(X[k])).map(a=>a[1]);
   $('#pCap').textContent=c.text;$('#pCnt').textContent=`Символів: ${c.len}/1022${c.note?' · '+c.note:''}${miss.length?' · не заповнено: '+miss.join(', '):''}`;sendFields()};
  const fill=()=>R.querySelectorAll('[data-k]').forEach(el=>{el.value=X[el.dataset.k]==null?'':X[el.dataset.k];el.oninput=el.onchange=()=>{X[el.dataset.k]=el.value;save();upd()}});
