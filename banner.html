@@ -8,16 +8,16 @@
 :root{--bg:#0e0f14;--pn:#171922;--tx:#e8e6e6;--mu:#9a9aa5;--ln:#2a2d3a;--ac:#d6342f;box-sizing:border-box}
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f3f3f6;--pn:#fff;--tx:#1b1c22;--mu:#5d5f6b;--ln:#d9dae2}}
 :root[data-theme="dark"]{--bg:#0e0f14;--pn:#171922;--tx:#e8e6e6;--mu:#9a9aa5;--ln:#2a2d3a}
-*{box-sizing:inherit}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
-.w{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;padding:16px;max-width:1500px;margin:auto}
-@media(max-width:860px){.w{grid-template-columns:1fr}}
+*{box-sizing:inherit}body{margin:0;overflow:hidden;background:var(--bg);color:var(--tx);font:14px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.w{display:grid;grid-template-columns:minmax(300px,400px) 1fr;gap:14px;padding:12px;height:100vh;max-width:1500px;margin:auto}.w>.pn:first-child{overflow:auto;min-height:0}.st{align-self:start;max-height:100%;overflow:auto}.bgg button{padding:3px;font-size:11px;line-height:1.2}.bgg img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;display:block}
+@media(max-width:860px){body{overflow:auto}.w{display:block;height:auto}.w>.pn:first-child{overflow:visible}.st{position:sticky;top:0;z-index:5;margin-bottom:10px}}
 .pn{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:14px}
 h1{font-size:17px;margin:0 0 10px}label{display:block;font-size:12px;color:var(--mu);margin:8px 0 0}
 input,select{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--ln);background:transparent;color:var(--tx);font:inherit}
 input[type=range]{padding:0}.g{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 button{padding:10px 14px;border-radius:10px;border:1px solid var(--ln);background:transparent;color:var(--tx);font:inherit;cursor:pointer}
 button.pr{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:700}
-.r{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.st{position:sticky;top:12px;align-self:start}
+.r{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 canvas{width:100%;height:auto;display:block;border-radius:10px;background:#000;touch-action:none;cursor:grab}
 small{color:var(--mu)}.tp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}.tp button{padding:5px;text-align:center;font-size:12px;line-height:1.25}.tp button.on{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac) inset}.tp img{width:100%;border-radius:6px;display:block;margin-bottom:4px}
 </style></head><body>
@@ -34,6 +34,7 @@ small{color:var(--mu)}.tp{display:grid;grid-template-columns:repeat(3,1fr);gap:8
 <label>Масштаб фото<input type="range" id="zm" min="30" max="400" value="100"></label>
 <small>Перетягуй фото мишею по банеру, колесо миші = масштаб.</small>
 <div class="r" style="margin-top:6px"><button id="fw" type="button">Заповнити по ширині</button><button id="fh" type="button">Вписати по висоті</button></div>
+<div style="margin-top:8px"><b>Фон сцени (для вирізаного авто)</b><div class="tp bgg" id="bgGrid" style="margin-top:6px"></div><label>Свій фон (лише для цього банера, не зберігається)<input type="file" id="bgF" accept="image/*"></label></div>
 <details open style="margin-top:8px"><summary><b>Тонке налаштування фото і фону</b></summary>
 <label>Позиція X<input type="range" id="px" min="-1200" max="1200" value="0"></label>
 <label>Позиція Y<input type="range" id="py" min="-900" max="900" value="0"></label>
@@ -41,6 +42,12 @@ small{color:var(--mu)}.tp{display:grid;grid-template-columns:repeat(3,1fr);gap:8
 <label>Яскравість авто<input type="range" id="br" min="-40" max="40" value="0"></label>
 <label>Плавність країв фото<input type="range" id="fe" min="0" max="400" value="170"></label>
 <label>Фон навколо фото<select id="bgm"><option value="blur">Розмита копія фото</option><option value="mirror">Дзеркальне продовження сцени</option><option value="dark">Темний (без фону)</option><option value="studio">Студія (потрібне вирізане авто)</option></select></label>
+<div class="r" style="margin-top:6px"><button id="flip" type="button">⇋ Віддзеркалити авто</button></div>
+<label>Розтягнути по ширині<input type="range" id="sx" min="60" max="140" value="100"></label>
+<label>Висота / перспектива<input type="range" id="sy" min="60" max="140" value="100"></label>
+<label>Перекіс по X<input type="range" id="kx" min="-40" max="40" value="0"></label>
+<label>Перекіс по Y<input type="range" id="ky" min="-25" max="25" value="0"></label>
+<label>Зсув тіні по X<input type="range" id="shx" min="-300" max="300" value="0"></label>
 <label>Тінь під авто<input type="range" id="sh" min="0" max="100" value="70"></label>
 <label>Відблиск на підлозі<input type="range" id="rf" min="0" max="100" value="35"></label>
 <label>Червоне свічення<input type="range" id="gl" min="0" max="100" value="60"></label>
@@ -80,7 +87,7 @@ const IC={eng:'M3 10h2V8h3V6h6v2h2l2 2h2v6h-2v2l-2 2H9l-3-3v-2H3zM12 10l-2 3h3l-
 function icon(k,x,y,s,col='#ea7d6c',fill){c.save();c.translate(x,y);c.scale(s/24,s/24);c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.7;c.lineJoin=c.lineCap='round';const p=new Path2D(IC[k]);fill||k==='star'?c.fill(p):c.stroke(p);c.restore()}
 function brand(x,y,tw){let sz=100;const P2=[['CAR','#ffffff'],['FOR','#e3342f'],['SALE','#ffffff'],['.','#e3342f'],['UA','#ffffff']],m=()=>{c.font=`italic 900 ${sz}px ${BR}`;return P2.map(p=>c.measureText(p[0]).width)};let ws=m(),t=ws.reduce((a,b)=>a+b);sz=sz*tw/t;ws=m();t=ws.reduce((a,b)=>a+b);let cx=x-t/2;c.textAlign='left';c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=3;c.shadowOffsetY=3;P2.forEach((p,i)=>{c.fillStyle=p[1];c.fillText(p[0],cx,y);cx+=ws[i]});sh0()}
 const fmtPh=s=>{let d=String(s).replace(/\D/g,'');if(d.startsWith('380'))d=d.slice(2);return d.length===10?`(${d.slice(0,3)}) ${d.slice(3,6)} ${d.slice(6,8)} ${d.slice(8)}`:s};
-const V={rt:0,br:0,bgm:'blur',bb:25,bd:45,fe:170,lw:100,la:100,sh:70,rf:35,gl:60,mode:'code'};let cutImg=null,bb0=null,srcFile=null,aiImg=null;
+const V={rt:0,br:0,bgm:'blur',bb:25,bd:45,fe:170,lw:100,la:100,sh:70,rf:35,gl:60,mode:'code',sx:100,sy:100,kx:0,ky:0,shx:0,flip:false};let bgImg=null,bgList=[];let cutImg=null,bb0=null,srcFile=null,aiImg=null;
 const mk=(w,h)=>{const e=document.createElement('canvas');e.width=w;e.height=h;return e};
 function photo(p,aT,aH){
  const iw=img.naturalWidth,ih=img.naturalHeight,s=Math.max(aH/ih,W*p.share/iw)*z,dw=iw*s,dh=ih*s,x=W-dw+ox,y=(aH-dh)/2+oy,hh=Math.ceil(aH*S);
@@ -100,14 +107,15 @@ function photo(p,aT,aH){
 const hasAlpha=im=>{const e=mk(48,48),x=e.getContext('2d');x.drawImage(im,0,0,48,48);const d=x.getImageData(0,0,48,48).data;let n=0;for(let i=3;i<d.length;i+=4)if(d[i]<200)n++;return n>48*48*.04};
 function calcBB(im){const k=Math.min(1,400/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k)),e=mk(w,h),x=e.getContext('2d');x.drawImage(im,0,0,w,h);const d=x.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=0,y1=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>40){if(i<x0)x0=i;if(i>x1)x1=i;if(j<y0)y0=j;if(j>y1)y1=j}return x1>x0?{x0:x0/w,x1:(x1+1)/w,y0:y0/h,y1:(y1+1)/h}:{x0:0,x1:1,y0:0,y1:1}}
 function studio(){
- const iw=cutImg.naturalWidth,ih=cutImg.naturalHeight,bw=(bb0.x1-bb0.x0)*iw,s=W*.6*z/bw,dw=iw*s,dh=ih*s,cx=1430+ox,yb=1330+oy,x=cx-(bb0.x0+bb0.x1)/2*iw*s,y=yb-bb0.y1*ih*s,bwp=bw*s,hh=Math.ceil(1430*S);
- let g=c.createLinearGradient(0,0,0,1430);g.addColorStop(0,'#07080d');g.addColorStop(.62,'#0e1018');g.addColorStop(1,'#161821');c.fillStyle=g;c.fillRect(0,0,W,1430);
+ const iw=cutImg.naturalWidth,ih=cutImg.naturalHeight,bw=(bb0.x1-bb0.x0)*iw,s=W*.6*z/bw,dw=iw*s,dh=ih*s,cx=1430+ox,yb=1330+oy,x=cx-(bb0.x0+bb0.x1)/2*iw*s,y=yb-bb0.y1*ih*s,bwp=bw*s*V.sx/100,hh=Math.ceil(1430*S);let g;
+ if(bgImg){const k0=Math.max(W/bgImg.naturalWidth,1430/bgImg.naturalHeight);c.drawImage(bgImg,(W-bgImg.naturalWidth*k0)/2,(1430-bgImg.naturalHeight*k0)/2,bgImg.naturalWidth*k0,bgImg.naturalHeight*k0);c.fillStyle=`rgba(8,9,14,${V.bd/100})`;c.fillRect(0,0,W,1430)}
+ else{g=c.createLinearGradient(0,0,0,1430);g.addColorStop(0,'#07080d');g.addColorStop(.62,'#0e1018');g.addColorStop(1,'#161821');c.fillStyle=g;c.fillRect(0,0,W,1430)}
  if(V.gl){const r=c.createRadialGradient(cx,yb-260,40,cx,yb-260,980);r.addColorStop(0,`rgba(225,55,48,${.38*V.gl/100})`);r.addColorStop(1,'rgba(225,55,48,0)');c.fillStyle=r;c.fillRect(0,0,W,1430)}
- g=c.createLinearGradient(0,yb-70,0,1430);g.addColorStop(0,'rgba(255,255,255,.08)');g.addColorStop(.3,'rgba(255,255,255,.025)');g.addColorStop(1,'rgba(0,0,0,.55)');c.fillStyle=g;c.fillRect(0,yb-70,W,1430-yb+70);
- const ell=(rx,ry,cy,col,a)=>{c.save();c.translate(cx,cy);c.scale(1,ry/rx);const r=c.createRadialGradient(0,0,0,0,0,rx);r.addColorStop(0,col.replace('A',a));r.addColorStop(1,col.replace('A',0));c.fillStyle=r;c.beginPath();c.arc(0,0,rx,0,7);c.fill();c.restore()};
- if(V.gl)ell(bwp*.75,bwp*.07,yb+8,'rgba(225,55,48,A)',.5*V.gl/100);
- if(V.sh)ell(bwp*.62,bwp*.06,yb-4,'rgba(0,0,0,A)',.9*V.sh/100);
- const K=mk(OUT,hh),k=K.getContext('2d');k.scale(S,S);k.save();k.translate(cx,yb);k.rotate(V.rt*Math.PI/1800);k.translate(-cx,-yb);k.drawImage(cutImg,x,y,dw,dh);k.restore();
+ if(!bgImg){g=c.createLinearGradient(0,yb-70,0,1430);g.addColorStop(0,'rgba(255,255,255,.08)');g.addColorStop(.3,'rgba(255,255,255,.025)');g.addColorStop(1,'rgba(0,0,0,.55)');c.fillStyle=g;c.fillRect(0,yb-70,W,1430-yb+70)}
+ const ell=(px,rx,ry,cy,col,a)=>{c.save();c.translate(px,cy);c.scale(1,ry/rx);const r=c.createRadialGradient(0,0,0,0,0,rx);r.addColorStop(0,col.replace('A',a));r.addColorStop(1,col.replace('A',0));c.fillStyle=r;c.beginPath();c.arc(0,0,rx,0,7);c.fill();c.restore()};
+ if(V.gl&&!bgImg)ell(cx+V.shx,bwp*.75,bwp*.07,yb+8,'rgba(225,55,48,A)',.5*V.gl/100);
+ if(V.sh){ell(cx+V.shx,bwp*.66,bwp*.075,yb-4,'rgba(0,0,0,A)',.9*V.sh/100);ell(cx+V.shx,bwp*.4,bwp*.03,yb-2,'rgba(0,0,0,A)',.95*V.sh/100)}
+ const K=mk(OUT,hh),k=K.getContext('2d');k.scale(S,S);k.save();k.translate(cx,yb);k.rotate(V.rt*Math.PI/1800);k.transform(1,V.ky/100,V.kx/100,1,0,0);k.scale((V.flip?-1:1)*V.sx/100,V.sy/100);k.translate(-cx,-yb);k.drawImage(cutImg,x,y,dw,dh);k.restore();
  if(V.br){k.globalCompositeOperation='source-atop';k.fillStyle=V.br<0?`rgba(0,0,0,${-V.br/100})`:`rgba(255,255,255,${V.br/200})`;k.fillRect(0,0,W,1430)}
  if(V.rf){const R=mk(OUT,hh),r=R.getContext('2d');r.scale(S,S);r.translate(0,2*yb);r.scale(1,-1);r.drawImage(K,0,0,W,1430);r.setTransform(S,0,0,S,0,0);r.globalCompositeOperation='destination-in';const q=r.createLinearGradient(0,yb,0,yb+dh*.3);q.addColorStop(0,`rgba(0,0,0,${.5*V.rf/100})`);q.addColorStop(1,'rgba(0,0,0,0)');r.fillStyle=q;r.fillRect(0,0,W,1430);c.drawImage(R,0,0,W,1430)}
  c.drawImage(K,0,0,W,1430);
@@ -189,17 +197,18 @@ function render(){
  if(V.mode==='ai'){$('aiP').value=aiPrompt();c.setTransform(S,0,0,S,0,0);sh0();aiRender();return}
  const p=P[pk],aT=p.top,aH=1430-aT;c.setTransform(S,0,0,S,0,0);c.globalCompositeOperation='source-over';sh0();
  const stu=V.bgm==='studio'&&cutImg;c.fillStyle='#0b0c12';c.fillRect(0,0,W,H);if(img){if(stu)studio();else photo(p,aT,aH)}
- let g=c.createLinearGradient(0,0,W,0);const la=V.la/100,fe2=p.fs+(p.fe-p.fs)*V.lw/100;g.addColorStop(0,`rgba(11,12,18,${la})`);g.addColorStop(p.fs/W,`rgba(11,12,18,${la})`);g.addColorStop(fe2/W,'rgba(11,12,18,0)');if(!stu){c.fillStyle=g;c.fillRect(0,aT,W,aH)}
- if(!p.panel&&!stu){g=c.createLinearGradient(0,0,0,400);g.addColorStop(0,'rgba(8,9,14,.82)');g.addColorStop(1,'rgba(8,9,14,0)');c.fillStyle=g;c.fillRect(0,0,W,400)}
+ let g=c.createLinearGradient(0,0,W,0);const la=V.la/100,fe2=p.fs+(p.fe-p.fs)*V.lw/100;g.addColorStop(0,`rgba(11,12,18,${la})`);g.addColorStop(p.fs/W,`rgba(11,12,18,${la})`);g.addColorStop(fe2/W,'rgba(11,12,18,0)');if(!stu||bgImg){c.fillStyle=g;c.fillRect(0,aT,W,aH)}
+ if(!p.panel&&(!stu||bgImg)){g=c.createLinearGradient(0,0,0,400);g.addColorStop(0,'rgba(8,9,14,.82)');g.addColorStop(1,'rgba(8,9,14,0)');c.fillStyle=g;c.fillRect(0,0,W,400)}
  header(p);cards();price();footer();$('inf').textContent=img?`Фото: ${img.naturalWidth}×${img.naturalHeight}. Вивід: ${OUT}×${OUT*3/4}`:'Завантаж фото авто — поки що показано порожній шаблон.'
 }
 $('zm').oninput=e=>{z=e.target.value/100;draw()};
 const sync=()=>{$('px').value=ox;$('py').value=oy;$('zm').value=z*100};
-$('rs').onclick=()=>{ox=oy=0;z=1;V.rt=0;$('rt').value=0;sync();draw()};
+$('rs').onclick=()=>{ox=oy=0;z=1;Object.assign(V,{rt:0,sx:100,sy:100,kx:0,ky:0,shx:0,flip:false});['rt','kx','ky','shx'].forEach(i=>$(i).value=0);['sx','sy'].forEach(i=>$(i).value=100);$('flip').className='';sync();draw()};
+$('flip').onclick=()=>{V.flip=!V.flip;$('flip').className=V.flip?'pr':'';draw()};
 const base=()=>{const p=P[pk];return Math.max((1430-p.top)/img.naturalHeight,W*p.share/img.naturalWidth)};
 $('fw').onclick=()=>{if(!img)return;if(V.bgm==='studio'&&cutImg){z=1.35;ox=oy=0;sync();draw();return}z=W/img.naturalWidth/base();ox=oy=0;sync();draw()};
 $('fh').onclick=()=>{if(!img)return;if(V.bgm==='studio'&&cutImg){z=.85;ox=oy=0;sync();draw();return}z=(1430-P[pk].top)/img.naturalHeight/base();ox=oy=0;sync();draw()};
-[['px',v=>ox=+v],['py',v=>oy=+v],['rt',v=>V.rt=+v],['br',v=>V.br=+v],['bb',v=>V.bb=+v],['bd',v=>V.bd=+v],['fe',v=>V.fe=+v],['lw',v=>V.lw=+v],['la',v=>V.la=+v],['sh',v=>V.sh=+v],['rf',v=>V.rf=+v],['gl',v=>V.gl=+v]].forEach(([id,f])=>$(id).oninput=e=>{f(e.target.value);draw()});
+[['px',v=>ox=+v],['py',v=>oy=+v],['rt',v=>V.rt=+v],['br',v=>V.br=+v],['bb',v=>V.bb=+v],['bd',v=>V.bd=+v],['fe',v=>V.fe=+v],['lw',v=>V.lw=+v],['la',v=>V.la=+v],['sh',v=>V.sh=+v],['rf',v=>V.rf=+v],['gl',v=>V.gl=+v],['sx',v=>V.sx=+v],['sy',v=>V.sy=+v],['kx',v=>V.kx=+v],['ky',v=>V.ky=+v],['shx',v=>V.shx=+v]].forEach(([id,f])=>$(id).oninput=e=>{f(e.target.value);draw()});
 $('bgm').onchange=e=>{if(e.target.value==='studio'&&!cutImg){alert('Для студії потрібне вирізане авто: натисни «Вирізати авто» або завантаж PNG без фону.');e.target.value=V.bgm;return}V.bgm=e.target.value;draw()};
 cv.addEventListener('wheel',e=>{e.preventDefault();z=Math.min(4,Math.max(.3,z*(e.deltaY<0?1.04:.96)));sync();draw()},{passive:false});
 $('ph').onchange=e=>{const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{img=i;srcFile=f;cutImg=null;if(hasAlpha(i)){cutImg=i;bb0=calcBB(i);V.bgm='studio'}else if(V.bgm==='studio')V.bgm='blur';$('bgm').value=V.bgm;ox=oy=0;z=1;sync();draw()};i.src=u};
@@ -209,8 +218,16 @@ cv.onpointerup=cv.onpointercancel=()=>{dr=null;cv.style.cursor='grab'};
 const out=cb=>{render();cv.toBlob(cb,'image/jpeg',.92)};
 $('dl').onclick=()=>out(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`banner-${(F.title||'car').replace(/\W+/g,'-').toLowerCase()}.jpg`;a.click()});
 $('us').onclick=()=>out(b=>{const r=new FileReader();r.onload=()=>{parent.postMessage({source:'CFS_BANNER',dataUrl:r.result},location.origin);$('us').textContent='✓ Надіслано в оголошення';setTimeout(()=>$('us').textContent='Використати як фото №1',2500)};r.readAsDataURL(b)});
-if(parent!==window)new ResizeObserver(()=>parent.postMessage({source:'CFS_BANNER_H',h:document.body.offsetHeight},location.origin)).observe(document.body);
-addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(d&&d.source==='CFS_ADMIN_BANNER_FIELDS'){Object.assign(F,d.fields||{});for(const k in F){const i=$('f_'+k);if(i)i.value=F[k]}draw()}});
+addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(d&&d.source==='CFS_ADMIN_BANNER_FIELDS'){Object.assign(F,d.fields||{});for(const k in F){const i=$('f_'+k);if(i)i.value=F[k]}draw()}
+ if(d&&d.source==='CFS_ADMIN_BGS'){bgList=d.list||[];drawBg()}});
+
+const esc2=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function drawBg(){const g=$('bgGrid');g.innerHTML=`<button type="button" data-i="-1" class="${bgImg?'':'on'}">Студійний<br>(код)</button>`+bgList.map((b,i)=>`<button type="button" data-i="${i}" class="${bgImg&&bgImg._u===b.url?'on':''}"><img loading="lazy" src="${esc2(b.thumb)}" alt=""><span>${esc2(b.name)}</span></button>`).join('')}
+$('bgGrid').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;
+ if(i<0){bgImg=null;V.gl=60;$('gl').value=60;drawBg();draw();return}
+ const it=bgList[i],im=new Image();im.crossOrigin='anonymous';im.onload=()=>{im._u=it.url;bgImg=im;V.gl=0;$('gl').value=0;drawBg();draw()};im.onerror=()=>{$('inf').textContent='Не вдалося завантажити фон'};im.src=it.url};
+$('bgF').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{im._u='own';bgImg=im;V.gl=0;$('gl').value=0;drawBg();draw()};im.src=URL.createObjectURL(f)};
+drawBg();if(parent!==window)parent.postMessage({source:'CFS_BANNER_READY'},location.origin);
 
 $('cut').onclick=async()=>{if(!img||!srcFile)return alert('Спочатку завантаж фото авто');const inf=$('inf');
  try{inf.textContent='Вирізання: завантажую модель (перший раз 1–2 хв, ~80 МБ)…';let m=null;
