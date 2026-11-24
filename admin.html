@@ -426,7 +426,7 @@ function buildPost(){
   finally{b.disabled=false;b.textContent=t0}};
  $('#pDiag').onclick=async()=>{const el=$('#pStat');el.style.whiteSpace='pre-line';el.textContent='Перевіряю…';
   try{const {data,error}=await sb.functions.invoke('publish-ad',{body:{action:'diag'}});if(error)throw new Error(await errText(error));
-   const f=v=>typeof v==='string'?v:JSON.stringify(v);el.textContent=`Бот: ${f(data.bot)}\nКанал: ${f(data.chat)}\nПрава бота: ${f(data.member)}\nIP сервера: ${data.server_ip||'?'}`+(data.error?'\n'+data.error:'')}
+   const f=v=>typeof v==='string'?v:JSON.stringify(v);el.textContent=`Бот: ${f(data.bot)}\nКанал: ${f(data.chat)}\nПрава бота: ${f(data.member)}\nПроксі: ${data.proxy||'?'}\nIP сервера: ${data.server_ip||'?'}`+(data.error?'\n'+data.error:'')}
   catch(e){el.textContent='✗ '+(e.message||e)}};
  fill();drawSl();upd();
 }
