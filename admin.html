@@ -384,7 +384,7 @@ function buildPost(){
  <h3>3. Фото (банер + до 9 фото)</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="button" id="pAdd">+ Додати фото</button><input type="file" id="pFiles" accept="image/*" multiple hidden><button type="button" id="pBan">Завантажити банер файлом</button><input type="file" id="pBanF" accept="image/*" hidden><span id="pSt" class="hint"></span></div><div class="ps" id="pSl"></div>
  <p class="hint">Фото зберігаються лише в цій вкладці браузера й нікуди не завантажуються, поки не опублікуєш.</p>
  <h3>4. Підпис для Telegram</h3><div id="pCap"></div><div id="pCnt" class="hint"></div>
- <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" id="pCopy">Скопіювати підпис</button><button type="button" class="pr" id="pPub">Опублікувати в Telegram</button><button type="button" id="pClr">Очистити форму</button></div><div id="pStat" class="hint" style="margin-top:8px"></div></div>`;
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" id="pCopy">Скопіювати підпис</button><button type="button" class="pr" id="pPub">Опублікувати в Telegram</button><button type="button" id="pClr">Очистити форму</button><button type="button" id="pDiag">Перевірити зв’язок з Telegram</button></div><div id="pStat" class="hint" style="margin-top:8px"></div></div>`;
  const save=()=>{try{localStorage.setItem('cfs_post',JSON.stringify(X))}catch(e){}};
  let ft;const sendFields=()=>{clearTimeout(ft);ft=setTimeout(()=>{const w=$('#pbf')&&$('#pbf').contentWindow;if(!w)return;w.postMessage({source:'CFS_ADMIN_BANNER_FIELDS',fields:{title:X.title,year:X.year,price:X.price,mileage:X.mileage,city:nm(X.city).replace(/^м\.?\s*/i,''),phone:X.phone,color:X.color,name:nm(X.who)||'власник',body:X.body,vol:X.vol,fuel:X.fuel,gear:X.gear,drive:X.drive?X.drive+' привід':'',extra:X.extra,cond:X.cond,check:X.check,trade:X.trade,docs:X.docs}},location.origin)},250)};
  const upd=()=>{const c=postCaption(X),miss=[['title','модель'],['year','рік'],['price','ціна'],['mileage','пробіг'],['city','місто'],['phone','телефон']].filter(([k])=>!nm(X[k])).map(a=>a[1]);
@@ -424,6 +424,10 @@ function buildPost(){
    pubN++;$('#pStat').dataset.m=`✓ Опубліковано в Telegram${pubN>1?` · повторно: ${Array(pubN).fill(1).join('+')} = ${pubN}`:''}`;showStats(data.stats);toast('Опубліковано в Telegram ✓')}
   catch(e){toast('Не вдалося опублікувати: '+(e.message||e));$('#pStat').dataset.m='✗ '+(e.message||e);$('#pStat').textContent=$('#pStat').dataset.m}
   finally{b.disabled=false;b.textContent=t0}};
+ $('#pDiag').onclick=async()=>{const el=$('#pStat');el.style.whiteSpace='pre-line';el.textContent='Перевіряю…';
+  try{const {data,error}=await sb.functions.invoke('publish-ad',{body:{action:'diag'}});if(error)throw new Error(await errText(error));
+   const f=v=>typeof v==='string'?v:JSON.stringify(v);el.textContent=`Бот: ${f(data.bot)}\nКанал: ${f(data.chat)}\nПрава бота: ${f(data.member)}\nIP сервера: ${data.server_ip||'?'}`+(data.error?'\n'+data.error:'')}
+  catch(e){el.textContent='✗ '+(e.message||e)}};
  fill();drawSl();upd();
 }
 
