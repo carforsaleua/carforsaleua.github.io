@@ -34,8 +34,8 @@ dialog{background:var(--p);color:#eee;border:1px solid var(--red);border-radius:
  <form id="lf"><label>Логін або email<input name="e" type="text" autocomplete="username" autocapitalize="none" required></label><label>Пароль<input name="p" type="password" autocomplete="current-password" required></label><button class="pr" style="width:100%">Увійти</button></form></div>
 <div id="app" class="w" hidden>
  <div class="top"><h1>Адмінка CARFORSALE.UA</h1><span><a href="index.html" target="_blank" style="color:#aaa">Сайт ↗</a> <button id="out">Вийти</button></span></div>
- <div class="tabs" id="tabs"><button data-t="post">Подати оголошення</button><button data-t="cars" class="on">Авто</button><button data-t="banner">Банер</button><button data-t="bgs">Фони банера</button><button data-t="pubstats">Статистика публікацій</button><button data-t="team">Команда</button><button data-t="part">Партнери</button><button data-t="tar">Тарифи</button><button data-t="stats">Статистика</button><button data-t="app">Додаток</button><button data-t="rev">Відгуки</button><button data-t="nums">Цифри й тексти</button><button data-t="links">Кнопки й посилання</button></div>
- <div id="p-cars"></div><div id="p-post" hidden></div><div id="p-banner" hidden></div><div id="p-bgs" hidden></div><div id="p-pubstats" hidden></div><div id="p-team" hidden></div><div id="p-part" hidden><h3>Партнери (групи, де розміщуємо авто)</h3><p class="hint">Додані тут партнери потім обираються галочками в картці авто («Де розміщено»).</p><div id="pp"></div><h3>Стрічка брендів унизу сайту</h3><p class="hint">Показується бігучою стрічкою над футером. Без логотипу виводиться назва. Логотипи додавайте лише тих, хто справді є вашим партнером.</p><div id="pb"></div></div><div id="p-tar" hidden></div><div id="p-stats" hidden><h3>Слайди (платформи)</h3><p class="hint">Назва слайда зв’язує його з показниками нижче. Якщо змінюєте назву, змініть її й у кожному показнику цього слайда.</p><div id="sg"></div><h3>Показники всередині слайдів</h3><div id="si"></div></div><div id="p-app" hidden></div><div id="p-nums" hidden></div><div id="p-links" hidden></div><div id="p-rev" hidden></div>
+ <div class="tabs" id="tabs"><button data-t="post">Подати оголошення</button><button data-t="cars" class="on">Авто</button><button data-t="banner">Банер</button><button data-t="bgs">Фони банера</button><button data-t="pubstats">Статистика публікацій</button><button data-t="fb">Поширення ФБ</button><button data-t="team">Команда</button><button data-t="part">Партнери</button><button data-t="tar">Тарифи</button><button data-t="stats">Статистика</button><button data-t="app">Додаток</button><button data-t="rev">Відгуки</button><button data-t="nums">Цифри й тексти</button><button data-t="links">Кнопки й посилання</button></div>
+ <div id="p-cars"></div><div id="p-post" hidden></div><div id="p-banner" hidden></div><div id="p-bgs" hidden></div><div id="p-pubstats" hidden></div><div id="p-fb" hidden></div><div id="p-team" hidden></div><div id="p-part" hidden><h3>Партнери (групи, де розміщуємо авто)</h3><p class="hint">Додані тут партнери потім обираються галочками в картці авто («Де розміщено»).</p><div id="pp"></div><h3>Стрічка брендів унизу сайту</h3><p class="hint">Показується бігучою стрічкою над футером. Без логотипу виводиться назва. Логотипи додавайте лише тих, хто справді є вашим партнером.</p><div id="pb"></div></div><div id="p-tar" hidden></div><div id="p-stats" hidden><h3>Слайди (платформи)</h3><p class="hint">Назва слайда зв’язує його з показниками нижче. Якщо змінюєте назву, змініть її й у кожному показнику цього слайда.</p><div id="sg"></div><h3>Показники всередині слайдів</h3><div id="si"></div></div><div id="p-app" hidden></div><div id="p-nums" hidden></div><div id="p-links" hidden></div><div id="p-rev" hidden></div>
 </div>
 <div id="toast"></div>
 <script src="config.js"></script>
@@ -258,6 +258,7 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
     <label>Встав сюди всі посилання на пости (по одному або текстом — розширення Safari перевірить їх і код розставить по партнерах)<textarea id="aiUrls" rows="4" placeholder="https://www.facebook.com/share/r/...&#10;https://www.facebook.com/share/p/..."></textarea></label>
     <button type="button" class="pr" id="aiRun">⚡ Перевірити через Safari та розподілити</button>
     <button type="button" id="aiResolve" style="margin-top:8px">🔗 Зчитати ID груп партнерів (разово)</button>
+    <button type="button" id="aiFromFb" style="margin-top:8px">⬇ Вставити зібрані з вкладки «Поширення ФБ»</button>
     <div class="ai-log" id="aiLog"></div>
     <div class="unmatched-list" id="aiUnmatched"></div>
    </div>
@@ -292,6 +293,7 @@ function crud(box,table,fields,o){const ic=o.ic||'image';
     finally{runBtn.disabled=false}
    };
 
+   d.querySelector('#aiFromFb').onclick=()=>{let l=window.__fbPosts;if(!l||!l.length){try{l=JSON.parse(localStorage.getItem('cfs_fb_posts')||'[]')}catch(e){l=[]}}if(!l.length)return toast('У вкладці «Поширення ФБ» ще немає зібраних посилань');const t=d.querySelector('#aiUrls');t.value=(t.value.trim()?t.value.trim()+'\n':'')+l.join('\n');toast(`Додано посилань: ${l.length}`)};
    d.querySelector('#aiResolve').onclick=async()=>{
     const btn=d.querySelector('#aiResolve'),todo=partnersList.filter(p=>p.link&&!String(p.fb_group_id||'').trim());
     if(!todo.length)return toast('Усі партнери вже мають ID груп');
@@ -473,7 +475,72 @@ async function buildPubStats(){
  $('#psR').onclick=load;load();
 }
 
-const tabs={pubstats:()=>buildPubStats(),bgs:()=>buildBgs(),post:()=>buildPost(),banner:()=>{const p=$('#p-banner');if(!p.firstChild)p.innerHTML='<iframe src="banner.html" title="Банер" style="width:100%;height:calc(100vh - 190px);min-height:760px;border:0;border-radius:12px"></iframe>'},part:()=>{crud($('#pp'),'partners',[['name','Назва (напр. Авто Київ UA)'],['description','Короткий опис','textarea'],['followers','Підписники (лише число, напр. 120 тис.)'],['link','Посилання на сторінку (https://…)'],['sort','Порядок','number'],['active','Показувати на сайті','check']],{img:1,opt:1,ic:'logo',pre:'partner-',imgl:'Логотип або фото сторінки партнера',add:'Додати партнера',title:'name',sub:r=>`${r.followers||''} · ${r.link||'без посилання'}`});crud($('#pb'),'brands',[['name','Назва бренду'],['sort','Порядок','number'],['active','Показувати','check']],{img:1,opt:1,ic:'logo',pre:'brand-',imgl:'Логотип (необов’язково)',add:'Додати бренд',title:'name',sub:r=>r.logo?'з логотипом':'лише назва'})},
+/* --- Поширення ФБ: тимчасова панель (нічого не зберігається в базі) --- */
+function extRpc(msg,ms=60000){return new Promise((ok,no)=>{const reqId='r'+Date.now()+Math.random().toString(36).slice(2,6);let h;const t=setTimeout(()=>{removeEventListener('message',h);no(new Error('Розширення Safari не відповідає'))},ms);h=e=>{const m=e.data;if(e.source!==window||!m||m.reqId!==reqId||m.source!=='CFS_EXT_RPC_RES')return;clearTimeout(t);removeEventListener('message',h);m.error?no(new Error(m.error)):ok(m.res||{})};addEventListener('message',h);postMessage({source:'CFS_ADMIN',action:'RPC',reqId,msg},'*')})}
+function buildFb(){
+ const R=$('#p-fb');if(R.dataset.ok)return;R.dataset.ok=1;
+ const LS=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}};
+ R.innerHTML=`<style>.fbr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}.fbr label{display:flex;gap:6px;align-items:center;margin:0}.fbr select,.fbr input[type=number]{width:auto}#fbGr li{margin:4px 0}#fbGr .st{font-size:12px;opacity:.8}</style>
+ <h3>Поширення ФБ</h3><p class="hint">Тимчасова робоча панель: нічого не зберігається в базі. Поширюй пост у групи у Facebook, розширення запам'ятає групи, а тут можна зібрати посилання на пости.</p>
+ <div class="g2"><label>Назва сторінки у Facebook<input id="fbPn" autocomplete="off"></label><label>ID сторінки (необов'язково, підвищує точність)<input id="fbPi" autocomplete="off"></label></div>
+ <div class="fbr"><label>Збирати до <select id="fbDur"><option value="10">10 хв</option><option value="15" selected>15 хв</option><option value="20">20 хв</option><option value="30">30 хв</option></select></label><label>перевіряти кожні <select id="fbInt"><option value="2">2 хв</option><option value="3" selected>3 хв</option><option value="5">5 хв</option></select></label><label><input type="checkbox" id="fbAll"> усі партнерські групи (якщо поширював з телефону)</label><label>пости не старші за <input type="number" id="fbAge" value="90" min="10" max="600" style="width:80px"> хв</label></div>
+ <div class="fbr"><button type="button" id="fbSync">Оновити з розширення</button><button type="button" class="pr" id="fbGo">Зібрати посилання на пости</button><button type="button" id="fbStop">Стоп</button><button type="button" id="fbRst">Скинути</button><button type="button" id="fbDbg">Діагностика ФБ</button></div>
+ <div id="fbTm" class="hint"></div>
+ <h4>Зібрані посилання на пости <span id="fbCnt" class="hint"></span></h4><textarea id="fbPosts" rows="8" placeholder="Тут з'являться посилання на пости…"></textarea>
+ <div class="fbr"><button type="button" id="fbCp">Копіювати всі пости</button><span class="hint">Далі встав їх у картці авто → «Де розміщено (історія)» (або кнопкою «Вставити зібрані…» там) і натисни «Перевірити та розподілити».</span></div>
+ <h4>Групи, в яких поширено <span id="fbGc" class="hint"></span></h4><ol id="fbGr"></ol><div class="fbr"><button type="button" id="fbCg">Копіювати список груп</button></div><pre id="fbDbgO" class="hint" style="white-space:pre-wrap"></pre>`;
+ const FB={partners:[],spread:[],st:{},posts:[],run:false,stop:false};
+ const sl=ms=>new Promise(r=>setTimeout(r,ms));
+ $('#fbPn').value=LS('cfs_fb_pn','Carforsale.ua');$('#fbPi').value=LS('cfs_fb_pi','61557268495368');
+ const gk=p=>{const ids=String(p.fb_group_id||'').split(/[\s,;]+/).filter(Boolean);return ids.find(x=>/^\d+$/.test(x))||ids[0]||''};
+ const savePosts=()=>{$('#fbPosts').value=FB.posts.join('\n');$('#fbCnt').textContent=`(${FB.posts.length})`;window.__fbPosts=FB.posts.slice();try{localStorage.setItem('cfs_fb_posts',JSON.stringify(FB.posts))}catch(e){}};
+ const addPost=u=>{if(u&&!FB.posts.includes(u)){FB.posts.push(u);savePosts()}};
+ const targets=()=>$('#fbAll').checked?FB.partners:FB.spread.map(s=>FB.partners.find(p=>String(p.id)===String(s.id))||{id:s.id,name:s.name,link:s.link}).filter(Boolean);
+ const LBL={wait:'⏳ очікує',check:'🔄 перевіряю…',found:'✓ посилання знайдено',none:'… поста ще немає (модерація?)',old:'… знайдено лише старіший пост',noid:'✗ немає ID групи (натисни «Зчитати ID груп партнерів»)',login:'✗ Facebook просить вхід',error:'✗ помилка',err:'✗ помилка'};
+ function render(){
+  const tg=targets();$('#fbGc').textContent=`(${tg.length})`;
+  $('#fbGr').innerHTML=tg.length?tg.map(p=>{const s=FB.st[p.id]||{},u=s.url?` · <a href="${esc(s.url)}" target="_blank" rel="noopener">пост</a>`:'';return `<li><a href="${esc(p.link||'#')}" target="_blank" rel="noopener">${esc(p.name)}</a> <span class="st">${s.s?LBL[s.s]||s.s:''}${s.n?` (перевірок: ${s.n})`:''}${s.note?' · '+esc(s.note):''}${u}</span></li>`}).join(''):'<li class="hint">Поки порожньо: поширюй пост у групи у Facebook (розширення підсвітить партнерів) і натисни «Оновити з розширення».</li>'}
+ async function loadPartners(){const {data,error}=await sb.from('partners').select('id,name,link,fb_group_id,active,sort').order('sort');if(error)throw error;FB.partners=(data||[]).filter(p=>p.active!==false)}
+ const cfg=()=>({pageName:$('#fbPn').value.trim(),pageId:$('#fbPi').value.trim(),partners:FB.partners.map(p=>({id:p.id,name:p.name,link:p.link}))});
+ async function pushCfg(){try{localStorage.setItem('cfs_fb_pn',$('#fbPn').value);localStorage.setItem('cfs_fb_pi',$('#fbPi').value)}catch(e){}await extRpc({type:'CFG_SET',cfg:cfg()})}
+ async function sync(){await loadPartners();await pushCfg();const s=await extRpc({type:'SESSION_GET'});FB.spread=s.spread||[];render()}
+ $('#fbSync').onclick=async()=>{try{await sync();toast(`Груп у сесії: ${FB.spread.length} · партнерів: ${FB.partners.length}`)}catch(e){toast('✗ '+e.message)}};
+ $('#fbStop').onclick=()=>{FB.stop=true};
+ $('#fbRst').onclick=async()=>{if(!confirm('Очистити обидва вікна і сесію розширення?'))return;FB.stop=true;try{await extRpc({type:'SESSION_RESET'})}catch(e){}FB.spread=[];FB.st={};FB.posts=[];savePosts();render();$('#fbTm').textContent=''};
+ $('#fbCp').onclick=async()=>{try{await navigator.clipboard.writeText(FB.posts.join('\n'));toast('Скопійовано ✓')}catch(e){toast('Не вдалося скопіювати')}};
+ $('#fbCg').onclick=async()=>{try{await navigator.clipboard.writeText(targets().map((p,i)=>`${i+1}. ${p.name} — ${p.link||''}`).join('\n'));toast('Скопійовано ✓')}catch(e){toast('Не вдалося скопіювати')}};
+ $('#fbPosts').oninput=e=>{FB.posts=[...new Set(e.target.value.split(/\s+/).filter(x=>/^https?:/.test(x)))];$('#fbCnt').textContent=`(${FB.posts.length})`;window.__fbPosts=FB.posts.slice();try{localStorage.setItem('cfs_fb_posts',JSON.stringify(FB.posts))}catch(x){}};
+ $('#fbDbg').onclick=async()=>{try{const r=await extRpc({type:'DEBUG_GET'});$('#fbDbgO').textContent=r.dbg?JSON.stringify(r.dbg,null,1):'Діагностики ще немає: відкрий у Facebook вікно «Поділитись у групі» і натисни ще раз.'}catch(e){$('#fbDbgO').textContent='✗ '+e.message}};
+ $('#fbGo').onclick=async()=>{
+  if(FB.run)return;FB.run=true;FB.stop=false;const b=$('#fbGo');b.disabled=true;
+  try{
+   await sync();const tg=targets();if(!tg.length){toast('Немає груп: поширь пост у групи або познач «усі партнерські групи»');return}
+   const all=$('#fbAll').checked,since=all?Date.now()-(+$('#fbAge').value||90)*60000:Math.min(...FB.spread.map(s=>s.ts||Date.now()))-5*60000,dur=+$('#fbDur').value*60000,gap=+$('#fbInt').value*60000,end=Date.now()+dur,c=cfg();
+   tg.forEach(p=>{if(!FB.st[p.id]||FB.st[p.id].s!=='found')FB.st[p.id]={s:'wait',n:0}});render();
+   let round=0;const tick=setInterval(()=>{const left=Math.max(0,end-Date.now()),found=tg.filter(p=>FB.st[p.id]&&FB.st[p.id].s==='found').length;$('#fbTm').textContent=`Раунд ${round} · знайдено ${found} із ${tg.length} · залишилось ${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,'0')}`},1000);
+   try{
+    while(!FB.stop&&Date.now()<end){
+     round++;const todo=tg.filter(p=>FB.st[p.id].s!=='found');if(!todo.length)break;
+     let idx=0;
+     const worker=async()=>{while(!FB.stop&&Date.now()<end){const p=todo[idx++];if(!p)return;const key=gk(p),prev=FB.st[p.id]||{n:0};
+       if(!key){FB.st[p.id]={s:'noid',n:prev.n};render();continue}
+       FB.st[p.id]={...prev,s:'check'};render();
+       try{const r=await extRpc({type:'FEED_CHECK',groupKey:key,pageName:c.pageName,pageId:c.pageId,sinceTs:since},120000),it=r.item||{};
+        if(it.state==='found'){FB.st[p.id]={s:'found',url:it.url,n:prev.n+1,note:it.note};addPost(it.url)}else FB.st[p.id]={s:it.state||'none',n:prev.n+1,note:it.note}}
+       catch(e){FB.st[p.id]={s:'err',n:prev.n+1,note:e.message}}
+       render();await sl(3000+Math.random()*3000)}};
+     await Promise.all([worker(),worker(),worker()]);
+     if(tg.every(p=>FB.st[p.id].s==='found'))break;
+     const until=Math.min(end,Date.now()+gap);while(!FB.stop&&Date.now()<until)await sl(1000);
+    }
+   }finally{clearInterval(tick)}
+   const found=tg.filter(p=>FB.st[p.id].s==='found').length;
+   $('#fbTm').textContent=(FB.stop?'Зупинено. ':'Завершено. ')+`Знайдено посилань: ${found} із ${tg.length}. Решту відкрий вручну за посиланнями груп нижче.`;toast(`Знайдено ${found} із ${tg.length}`);
+  }catch(e){toast('✗ '+(e.message||e))}finally{FB.run=false;b.disabled=false;render()}};
+ try{FB.posts=JSON.parse(LS('cfs_fb_posts','[]'))}catch(e){}savePosts();render();sync().catch(()=>{});
+}
+
+const tabs={fb:()=>buildFb(),pubstats:()=>buildPubStats(),bgs:()=>buildBgs(),post:()=>buildPost(),banner:()=>{const p=$('#p-banner');if(!p.firstChild)p.innerHTML='<iframe src="banner.html" title="Банер" style="width:100%;height:calc(100vh - 190px);min-height:760px;border:0;border-radius:12px"></iframe>'},part:()=>{crud($('#pp'),'partners',[['name','Назва (напр. Авто Київ UA)'],['description','Короткий опис','textarea'],['followers','Підписники (лише число, напр. 120 тис.)'],['link','Посилання на сторінку (https://…)'],['sort','Порядок','number'],['active','Показувати на сайті','check']],{img:1,opt:1,ic:'logo',pre:'partner-',imgl:'Логотип або фото сторінки партнера',add:'Додати партнера',title:'name',sub:r=>`${r.followers||''} · ${r.link||'без посилання'}`});crud($('#pb'),'brands',[['name','Назва бренду'],['sort','Порядок','number'],['active','Показувати','check']],{img:1,opt:1,ic:'logo',pre:'brand-',imgl:'Логотип (необов’язково)',add:'Додати бренд',title:'name',sub:r=>r.logo?'з логотипом':'лише назва'})},
  tar:()=>crud($('#p-tar'),'tariffs',[['name','Назва тарифу'],['price','Ціна (напр. 350₴)'],['subtitle','Короткий підзаголовок'],['badge','Плашка (напр. Популярний; порожньо = без плашки)'],['places','Де публікується (через кому; + на початку = нове порівняно з нижчим тарифом)','textarea'],['features','Що входить (кожен рядок окремий пункт; + на початку = нове порівняно з нижчим тарифом)','textarea'],['sort','Порядок (менше = лівіше)','number'],['active','Показувати на сайті','check']],{add:'Додати тариф',title:'name',sub:r=>`${r.price||''} · ${r.subtitle||''}`}),
  stats:()=>{crud($('#sg'),'stat_groups',[['title','Назва слайда (напр. Instagram)'],['subtitle','Підпис (напр. за 30 днів · станом на 15.11.2026)'],['sort','Порядок','number'],['active','Показувати слайд на сайті','check']],{img:1,opt:1,ic:'proof',pre:'proof-',imgl:'Скріншот-підтвердження (відкривається на сайті по кліку)',add:'Додати слайд',title:'title',sub:r=>(r.subtitle||'')+' · '+(r.proof?'є скріншот':'без скріншота: натисніть «Змінити», щоб додати')});crud($('#si'),'stat_items',[['grp','До якого слайда (точна назва слайда)'],['label','Показник (напр. Перегляди)'],['value','Значення (як є: 3 402 246 або 4,3 млн)'],['delta','Зміна (напр. +14,2% або −18%; можна порожньо)'],['sort','Порядок','number'],['active','Показувати','check']],{add:'Додати показник',title:'label',sub:r=>`${r.grp} · ${r.value} ${r.delta||''}`})},
  app:()=>crud($('#p-app'),'app_screens',[['caption','Підпис під екраном (необов’язково)'],['sort','Порядок','number'],['active','Показувати','check']],{img:1,ic:'image',pre:'app-',imgl:'Скріншот екрана додатка (вертикальний)',add:'Додати екран додатка',title:'caption',sub:r=>'Порядок: '+r.sort}),
@@ -491,7 +558,7 @@ const start=async()=>{
  if((error&&!noTable)||(!error&&!st)){await sb.auth.signOut();$('#app').hidden=true;$('#login').hidden=false;return toast('Немає доступу до адмінки')}
  ROLE=noTable?'admin':st.role;$('#login').hidden=true;$('#app').hidden=false;applyRole();
  ROLE==='admin'?tabs.cars():document.querySelector('#tabs [data-t="post"]').click()};
-$('#tabs').onclick=e=>{const t=e.target.dataset.t;if(!t||(ROLE!=='admin'&&!WORKER_TABS.includes(t)))return;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b===e.target));['cars','post','banner','bgs','pubstats','team','part','tar','stats','app','nums','links','rev'].forEach(x=>$('#p-'+x).hidden=x!==t);tabs[t]()};
+$('#tabs').onclick=e=>{const t=e.target.dataset.t;if(!t||(ROLE!=='admin'&&!WORKER_TABS.includes(t)))return;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b===e.target));['cars','post','banner','bgs','pubstats','fb','team','part','tar','stats','app','nums','links','rev'].forEach(x=>$('#p-'+x).hidden=x!==t);tabs[t]()};
 $('#lf').onsubmit=async e=>{e.preventDefault();const f=e.target,{error}=await sb.auth.signInWithPassword({email:toEmail(f.e.value),password:f.p.value});error?toast('Невірний логін або пароль'):start()};
 $('#out').onclick=async()=>{await sb.auth.signOut();location.reload()};
 if(CFG.url)sb.auth.getSession().then(({data})=>data.session?start():$('#login').hidden=false);
