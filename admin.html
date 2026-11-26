@@ -480,7 +480,7 @@ function extRpc(msg,ms=60000){return new Promise((ok,no)=>{const reqId='r'+Date.
 function buildFb(){
  const R=$('#p-fb');if(R.dataset.ok)return;R.dataset.ok=1;
  const LS=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}};
- R.innerHTML=`<style>.fbr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}.fbr label{display:flex;gap:6px;align-items:center;margin:0}.fbr select,.fbr input[type=number]{width:auto}#fbGr li{margin:4px 0}#fbGr .st{font-size:12px;opacity:.8}</style>
+ R.innerHTML=`<style>.fbr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}.fbr label{display:flex;gap:6px;align-items:center;margin:0}.fbr input[type=checkbox]{width:auto;margin:0}.fbr select,.fbr input[type=number]{width:auto}#fbGr li{margin:4px 0}#fbGr .st{font-size:12px;opacity:.8}</style>
  <h3>Поширення ФБ</h3><p class="hint">Тимчасова робоча панель: нічого не зберігається в базі. Поширюй пост у групи у Facebook, розширення запам'ятає групи, а тут можна зібрати посилання на пости.</p>
  <div class="g2"><label>Назва сторінки у Facebook<input id="fbPn" autocomplete="off"></label><label>ID сторінки (необов'язково, підвищує точність)<input id="fbPi" autocomplete="off"></label></div>
  <div class="fbr"><label>Збирати до <select id="fbDur"><option value="10">10 хв</option><option value="15" selected>15 хв</option><option value="20">20 хв</option><option value="30">30 хв</option></select></label><label>перевіряти кожні <select id="fbInt"><option value="2">2 хв</option><option value="3" selected>3 хв</option><option value="5">5 хв</option></select></label><label><input type="checkbox" id="fbAll"> усі партнерські групи (якщо поширював з телефону)</label><label>пости не старші за <input type="number" id="fbAge" value="90" min="10" max="600" style="width:80px"> хв</label></div>
@@ -504,17 +504,17 @@ function buildFb(){
  const cfg=()=>({pageName:$('#fbPn').value.trim(),pageId:$('#fbPi').value.trim(),partners:FB.partners.map(p=>({id:p.id,name:p.name,link:p.link}))});
  async function pushCfg(){try{localStorage.setItem('cfs_fb_pn',$('#fbPn').value);localStorage.setItem('cfs_fb_pi',$('#fbPi').value)}catch(e){}await extRpc({type:'CFG_SET',cfg:cfg()})}
  async function sync(){await loadPartners();await pushCfg();const s=await extRpc({type:'SESSION_GET'});FB.spread=s.spread||[];render()}
- $('#fbSync').onclick=async()=>{try{await sync();toast(`Груп у сесії: ${FB.spread.length} · партнерів: ${FB.partners.length}`)}catch(e){toast('✗ '+e.message)}};
+ $('#fbSync').onclick=async()=>{try{await sync();toast(FB.spread.length?`Груп у сесії: ${FB.spread.length} · партнерів: ${FB.partners.length}`:`Партнерів: ${FB.partners.length}. Груп у сесії поки 0: вони з'являться, коли у Facebook поширюватимеш у партнерські групи (натискаєш «Отправить»)`)}catch(e){toast('✗ '+e.message)}};
  $('#fbStop').onclick=()=>{FB.stop=true};
  $('#fbRst').onclick=async()=>{if(!confirm('Очистити обидва вікна і сесію розширення?'))return;FB.stop=true;try{await extRpc({type:'SESSION_RESET'})}catch(e){}FB.spread=[];FB.st={};FB.posts=[];savePosts();render();$('#fbTm').textContent=''};
  $('#fbCp').onclick=async()=>{try{await navigator.clipboard.writeText(FB.posts.join('\n'));toast('Скопійовано ✓')}catch(e){toast('Не вдалося скопіювати')}};
  $('#fbCg').onclick=async()=>{try{await navigator.clipboard.writeText(targets().map((p,i)=>`${i+1}. ${p.name} — ${p.link||''}`).join('\n'));toast('Скопійовано ✓')}catch(e){toast('Не вдалося скопіювати')}};
  $('#fbPosts').oninput=e=>{FB.posts=[...new Set(e.target.value.split(/\s+/).filter(x=>/^https?:/.test(x)))];$('#fbCnt').textContent=`(${FB.posts.length})`;window.__fbPosts=FB.posts.slice();try{localStorage.setItem('cfs_fb_posts',JSON.stringify(FB.posts))}catch(x){}};
- $('#fbDbg').onclick=async()=>{try{const r=await extRpc({type:'DEBUG_GET'});$('#fbDbgO').textContent=r.dbg?JSON.stringify(r.dbg,null,1):'Діагностики ще немає: відкрий у Facebook вікно «Поділитись у групі» і натисни ще раз.'}catch(e){$('#fbDbgO').textContent='✗ '+e.message}};
+ $('#fbDbg').onclick=async()=>{try{const r=await extRpc({type:'DEBUG_GET'});const d=r.dbg;$('#fbDbgO').textContent=d?`Знімок зроблено ${Math.max(0,Math.round((Date.now()-new Date(d.t))/60000))} хв тому. Щоб побачити актуальний: у Facebook натисни стрілку «Поділитись» під постом → «Группа», зачекай 3 с, поки з'явиться список груп, і натисни цю кнопку ще раз.\n`+JSON.stringify(d,null,1):'Знімка ще немає: відкрий у Facebook будь-яку сторінку з розширенням і спробуй ще раз.'}catch(e){$('#fbDbgO').textContent='✗ '+e.message}};
  $('#fbGo').onclick=async()=>{
   if(FB.run)return;FB.run=true;FB.stop=false;const b=$('#fbGo');b.disabled=true;
   try{
-   await sync();const tg=targets();if(!tg.length){toast('Немає груп: поширь пост у групи або познач «усі партнерські групи»');return}
+   await sync();if(!FB.spread.length&&!$('#fbAll').checked){$('#fbAll').checked=true;toast('Сесія порожня (поширював з телефону?): перевіряю всі партнерські групи')}const tg=targets();if(!tg.length){toast('Немає груп: поширь пост у групи або познач «усі партнерські групи»');return}
    const all=$('#fbAll').checked,since=all?Date.now()-(+$('#fbAge').value||90)*60000:Math.min(...FB.spread.map(s=>s.ts||Date.now()))-5*60000,dur=+$('#fbDur').value*60000,gap=+$('#fbInt').value*60000,end=Date.now()+dur,c=cfg();
    tg.forEach(p=>{if(!FB.st[p.id]||FB.st[p.id].s!=='found')FB.st[p.id]={s:'wait',n:0}});render();
    let round=0;const tick=setInterval(()=>{const left=Math.max(0,end-Date.now()),found=tg.filter(p=>FB.st[p.id]&&FB.st[p.id].s==='found').length;$('#fbTm').textContent=`Раунд ${round} · знайдено ${found} із ${tg.length} · залишилось ${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,'0')}`},1000);
